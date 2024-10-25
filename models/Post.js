@@ -7,8 +7,8 @@ const postSchema = new mongoose.Schema({
   devDependencies: { type: [String], required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  recommends: { type: Number, default: 0 },
-  views: { type: Number, default: 0 },
+  likesCount: { type: Number, default: 0 },
+  viewsCount: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model('Post', postSchema);
