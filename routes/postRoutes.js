@@ -28,10 +28,6 @@ router.put('/:id', jwtMiddleware, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
 
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
     // 게시글 작성자와 토큰의 사용자 ID 비교
     if (post.author.toString() !== req.user._id) {
       return res.status(403).json({ message: 'Not authorized' });
@@ -41,6 +37,7 @@ router.put('/:id', jwtMiddleware, async (req, res) => {
     post.content = content;
     post.tags = tags;
     post.devDependencies = devDependencies;
+    post.updatedAt = Date.now();
 
     const updatedPost = await post.save();
     res.json(updatedPost);
