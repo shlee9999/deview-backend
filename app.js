@@ -81,7 +81,7 @@ app.post('/login', async (req, res) => {
       group: user.group,
     };
 
-    res.status(200).json({ message: '로그인 성공', token, user: userInfo });
+    res.status(200).json({ message: '로그인 성공', token, userInfo });
   } catch (error) {
     res.status(500).json({ message: '로그인 실패', error: error.message });
   }
