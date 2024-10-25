@@ -31,9 +31,10 @@ exports.login = async (req, res) => {
         .json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET); //! expire 되지 않는 임시 토큰
+    // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+    //   expiresIn: '24h',
+    // });
 
     const userInfo = {
       id: user.id,
