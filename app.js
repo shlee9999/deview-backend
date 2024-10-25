@@ -74,7 +74,14 @@ app.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
       expiresIn: '1h',
     });
-    res.status(200).json({ message: '로그인 성공', token });
+
+    const userInfo = {
+      id: user.id,
+      username: user.username,
+      group: user.group,
+    };
+
+    res.status(200).json({ message: '로그인 성공', token, user: userInfo });
   } catch (error) {
     res.status(500).json({ message: '로그인 실패', error: error.message });
   }
