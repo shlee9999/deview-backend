@@ -8,10 +8,11 @@ exports.register = async (req, res) => {
   try {
     const newUser = new User({ username, id, password, group });
     await newUser.save();
-    res.status(201).json({ message: '사용자 등록 성공' });
+    res.status(201).json({ message: '사용자 등록 성공' }); // 201 Created
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({
+      return res.status(409).json({
+        // 409 Conflict
         message: '해당 ID는 이미 존재합니다. 다른 ID를 입력해주세요.',
         error: error.message,
       });
@@ -30,7 +31,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
+        .json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' }); // 401 Unauthorized
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -38,26 +39,21 @@ exports.login = async (req, res) => {
     if (!isPasswordValid) {
       return res
         .status(401)
-        .json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' });
+        .json({ message: '아이디 또는 비밀번호가 일치하지 않습니다.' }); // 401 Unauthorized
     }
 
     const accessToken = jwt.sign(
       { _id: user._id },
       process.env.ACCESS_TOKEN_SECRET,
-      {
-        expiresIn: '30s',
-      }
+      { expiresIn: '30s' }
     );
 
     const refreshToken = jwt.sign(
       { _id: user._id },
       process.env.REFRESH_TOKEN_SECRET,
-      {
-        expiresIn: '7d',
-      }
+      { expiresIn: '7d' }
     );
 
-    // 리프레시 토큰을 사용자 문서에 저장
     user.setRefreshToken(refreshToken);
     await user.save();
 
@@ -67,15 +63,14 @@ exports.login = async (req, res) => {
       group: user.group,
     };
 
-    // 리프레시 토큰을 HTTP-only 쿠키로 설정
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS에서만 쿠키 전송 (배포 환경)
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: '로그인 성공', accessToken, userInfo });
+    res.status(200).json({ message: '로그인 성공', accessToken, userInfo }); // 200 OK
   } catch (error) {
     res.status(500).json({ message: '로그인 실패', error: error.message });
   }
@@ -85,7 +80,7 @@ exports.refreshToken = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ message: '리프레시 토큰이 없습니다.' });
+      return res.status(401).json({ message: '리프레시 토큰이 없습니다.' }); // 401 Unauthorized
     }
 
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
@@ -94,7 +89,7 @@ exports.refreshToken = async (req, res) => {
     if (!user) {
       return res
         .status(403)
-        .json({ message: '유효하지 않은 리프레시 토큰입니다.' });
+        .json({ message: '유효하지 않은 리프레시 토큰입니다.' }); // 403 Forbidden
     }
 
     const newAccessToken = jwt.sign(
@@ -103,11 +98,11 @@ exports.refreshToken = async (req, res) => {
       { expiresIn: '15m' }
     );
 
-    res.status(200).json({ accessToken: newAccessToken });
+    res.status(200).json({ accessToken: newAccessToken }); // 200 OK
   } catch (error) {
     res
       .status(403)
-      .json({ message: '리프레시 토큰 갱신 실패', error: error.message });
+      .json({ message: '리프레시 토큰 갱신 실패', error: error.message }); // 403 Forbidden
   }
 };
 
@@ -116,7 +111,6 @@ exports.logout = async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
-      // 데이터베이스에서 리프레시 토큰 제거
       const user = await User.findOne({ refreshToken });
       if (user) {
         user.clearRefreshToken();
@@ -124,10 +118,9 @@ exports.logout = async (req, res) => {
       }
     }
 
-    // 클라이언트의 리프레시 토큰 쿠키 삭제
     res.clearCookie('refreshToken');
 
-    res.status(200).json({ message: '로그아웃 성공' });
+    res.status(204).json(); // 204 No Content
   } catch (error) {
     res.status(500).json({ message: '로그아웃 실패', error: error.message });
   }
