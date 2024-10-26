@@ -2,6 +2,32 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
+exports.myself = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select('-password -refreshToken') // 민감한 정보 제외
+      .lean(); // 성능 최적화
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '사용자를 찾을 수 없습니다.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: '서버 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'production' ? undefined : error.message,
+    });
+  }
+};
+
 exports.register = async (req, res) => {
   const { username, id, password, group } = req.body;
 
