@@ -8,9 +8,11 @@ exports.createComment = async (req, res) => {
     const comment = new Comment({ postId, content, author });
     await comment.save();
 
-    res.status(201).json({ message: 'Comment created successfully', comment });
+    return res
+      .status(201)
+      .json({ message: 'Comment created successfully', comment });
   } catch (error) {
-    res
+    return res
       .status(500)
       .json({ message: 'Error creating comment', error: error.message });
   }
@@ -25,9 +27,9 @@ exports.getCommentsByPostId = async (req, res) => {
       'username'
     );
 
-    res.status(200).json({ comments });
+    return res.status(200).json({ comments });
   } catch (error) {
-    res
+    return res
       .status(500)
       .json({ message: 'Error retrieving comments', error: error.message });
   }
@@ -42,9 +44,11 @@ exports.updateComment = async (req, res) => {
     comment.updatedAt = Date.now();
     await comment.save();
 
-    res.status(200).json({ message: 'Comment updated successfully', comment });
+    return res
+      .status(200)
+      .json({ message: 'Comment updated successfully', comment });
   } catch (error) {
-    res
+    return res
       .status(500)
       .json({ message: 'Error updating comment', error: error.message });
   }
@@ -56,9 +60,9 @@ exports.deleteComment = async (req, res) => {
 
     await comment.deleteOne();
 
-    res.status(200).json({ message: 'Comment deleted successfully' });
+    return res.status(200).json({ message: 'Comment deleted successfully' });
   } catch (error) {
-    res
+    return res
       .status(500)
       .json({ message: 'Error deleting comment', error: error.message });
   }
