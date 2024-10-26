@@ -3,12 +3,20 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 exports.register = async (req, res) => {
+  const { username, id, password, group } = req.body;
+
   try {
-    const newUser = new User(req.body);
+    const newUser = new User({ username, id, password, group });
     await newUser.save();
     res.status(201).json({ message: '사용자 등록 성공' });
   } catch (error) {
-    res.status(400).json({ message: '사용자 등록 실패', error: error.message });
+    if (error.code === 11000) {
+      res.status(400).json({
+        message: '해당 ID는 이미 존재합니다. 다른 ID를 입력해주세요.',
+        error: error.message,
+      });
+    }
+    res.status(500).json({ message: '사용자 등록 실패', error: error.message });
   }
 };
 
