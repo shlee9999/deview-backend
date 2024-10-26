@@ -4,6 +4,7 @@ const connectDB = require('./config/database');
 const corsMiddleware = require('./middleware/corsMiddleware');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 
 const app = express();
 const port = 5000;
@@ -20,6 +21,7 @@ app.get('/', (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/post', postRoutes);
+app.use('/comment', commentRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
