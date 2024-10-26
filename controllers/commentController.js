@@ -16,6 +16,16 @@ exports.createComment = async (req, res) => {
   }
 };
 
+exports.getMyComments = async (req, res) => {
+  try {
+    const comments = await Comment.find({ author: req.user._id }).populate(
+      'author'
+    );
+    return res.status(200).json(comments); // 200 OK
+  } catch (error) {
+    return res.status(500).json({ message: '내 댓글 조회 실패' });
+  }
+};
 exports.getCommentsByPostId = async (req, res) => {
   try {
     const { postId } = req.params;
