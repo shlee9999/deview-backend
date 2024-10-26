@@ -39,7 +39,6 @@ exports.updateComment = async (req, res) => {
     const comment = req.comment; // Set by isCommentAuthor middleware
 
     comment.content = content;
-    comment.updatedAt = Date.now();
     await comment.save();
 
     return res.status(200).json({ message: '댓글 수정 성공', comment });

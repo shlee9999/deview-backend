@@ -34,7 +34,6 @@ exports.updatePost = async (req, res) => {
     post.content = content;
     post.tags = tags;
     post.devDependencies = devDependencies;
-    post.updatedAt = Date.now();
 
     const updatedPost = await post.save();
     return res.status(200).json(updatedPost); // 200 OK
