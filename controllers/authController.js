@@ -131,6 +131,10 @@ exports.logout = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
+    if (!refreshToken) {
+      throw new Error('Refresh token not found');
+    }
+
     if (refreshToken) {
       const user = await User.findOne({ refreshToken });
       if (user) {
