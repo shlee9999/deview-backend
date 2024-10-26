@@ -1,4 +1,5 @@
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 
 exports.getAllPosts = async (req, res) => {
   try {
@@ -53,9 +54,14 @@ exports.updatePost = async (req, res) => {
 
 exports.deletePost = async (req, res) => {
   try {
-    await Post.findByIdAndDelete(req.post._id);
-    return res.status(204).json(); // 204 No Content
+    const postId = req.post._id;
+
+    await Comment.deleteMany({ postId }); // 게시물에 연결된 모든 댓글 삭제
+    await Post.findByIdAndDelete(postId); // 게시물 삭제
+
+    return res.status(204).send(); // 204 No Content
   } catch (error) {
+    console.error('게시물 삭제 중 오류 발생:', error);
     return res.status(500).json({ message: '게시물 삭제 실패' });
   }
 };
