@@ -18,6 +18,9 @@ exports.isCommentAuthor = async (req, res, next) => {
     req.comment = comment;
     next();
   } catch (error) {
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid Comment ID' });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
