@@ -5,6 +5,7 @@ const commentMiddleware = require('../middleware/commentMiddleware');
 const jwtMiddleware = require('../middleware/jwtMiddleware');
 
 router.post('/', jwtMiddleware, commentController.createComment);
+router.get('/myself', jwtMiddleware, commentController.getMyComments);
 router.get('/:postId', commentController.getCommentsByPostId);
 router.patch(
   '/:commentId',
