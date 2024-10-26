@@ -5,6 +5,7 @@ const postController = require('../controllers/postController');
 const postMiddleware = require('../middleware/postMiddleware');
 
 router.get('/', postController.getAllPosts);
+router.get('/myself', jwtMiddleware, postController.getMyPosts);
 router.post('/', jwtMiddleware, postController.createPost);
 router.put(
   '/:id',

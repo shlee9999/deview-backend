@@ -9,6 +9,15 @@ exports.getAllPosts = async (req, res) => {
   }
 };
 
+exports.getMyPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.user._id }).populate('author');
+    return res.status(200).json(posts); // 200 OK
+  } catch (error) {
+    return res.status(500).json({ message: '내 게시물 조회 실패' });
+  }
+};
+
 exports.createPost = async (req, res) => {
   try {
     const { title, content, devDependencies } = req.body;
