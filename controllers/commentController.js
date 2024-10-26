@@ -1,8 +1,15 @@
 const Comment = require('../models/Comment');
+const Post = require('../models/Post');
 
 exports.createComment = async (req, res) => {
   try {
     const { postId, content } = req.body;
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
     const author = req.user._id;
 
     const comment = new Comment({ postId, content, author });
@@ -15,7 +22,6 @@ exports.createComment = async (req, res) => {
       .json({ message: '댓글 작성 실패', error: error.message });
   }
 };
-
 exports.getMyComments = async (req, res) => {
   try {
     const comments = await Comment.find({ author: req.user._id }).populate(
