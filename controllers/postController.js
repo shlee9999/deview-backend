@@ -5,7 +5,7 @@ exports.getAllPosts = async (req, res) => {
     const posts = await Post.find().populate('author');
     res.json(posts);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -19,24 +19,16 @@ exports.createPost = async (req, res) => {
       devDependencies,
     });
     await post.save();
-    res.json(post);
+    res.status(201).json(post);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
 exports.updatePost = async (req, res) => {
-  const { title, content, tags, devDependencies } = req.body;
   try {
-    const post = await Post.findById(req.params.id);
-
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    if (post.author.toString() !== req.user._id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
+    const { title, content, tags, devDependencies } = req.body;
+    const post = req.post; // 미들웨어에서 설정한 post 객체 사용
 
     post.title = title;
     post.content = content;
@@ -47,32 +39,15 @@ exports.updatePost = async (req, res) => {
     const updatedPost = await post.save();
     res.json(updatedPost);
   } catch (error) {
-    console.error('Error updating post:', error);
-    if (error.name === 'CastError' && error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid post ID' });
-    }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
 exports.deletePost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
-
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    if (post.author.toString() !== req.user._id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    await Post.findByIdAndDelete(req.params.id);
+    await Post.findByIdAndDelete(req.post._id); // 미들웨어에서 설정한 post 객체의 ID 사용
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
-    if (error.name === 'CastError' && error.kind === 'ObjectId') {
-      return res.status(400).json({ message: 'Invalid post ID' });
-    }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error' });
   }
 };
