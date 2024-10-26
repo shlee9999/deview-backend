@@ -8,13 +8,11 @@ exports.createComment = async (req, res) => {
     const comment = new Comment({ postId, content, author });
     await comment.save();
 
-    return res
-      .status(201)
-      .json({ message: 'Comment created successfully', comment });
+    return res.status(201).json({ message: '댓글 작성 성공', comment });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: 'Error creating comment', error: error.message });
+      .json({ message: '댓글 작성 실패', error: error.message });
   }
 };
 
@@ -31,7 +29,7 @@ exports.getCommentsByPostId = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: 'Error retrieving comments', error: error.message });
+      .json({ message: '댓글 조회에 실패하였습니다.', error: error.message });
   }
 };
 
@@ -44,13 +42,11 @@ exports.updateComment = async (req, res) => {
     comment.updatedAt = Date.now();
     await comment.save();
 
-    return res
-      .status(200)
-      .json({ message: 'Comment updated successfully', comment });
+    return res.status(200).json({ message: '댓글 수정 성공', comment });
   } catch (error) {
     return res
       .status(500)
-      .json({ message: 'Error updating comment', error: error.message });
+      .json({ message: '댓글 수정 실패', error: error.message });
   }
 };
 
@@ -60,10 +56,10 @@ exports.deleteComment = async (req, res) => {
 
     await comment.deleteOne();
 
-    return res.status(200).json({ message: 'Comment deleted successfully' });
+    return res.status(204).json(); // 204 No Content
   } catch (error) {
     return res
       .status(500)
-      .json({ message: 'Error deleting comment', error: error.message });
+      .json({ message: '댓글 삭제 실패', error: error.message });
   }
 };

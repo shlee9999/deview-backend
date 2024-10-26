@@ -3,9 +3,9 @@ const Post = require('../models/Post');
 exports.getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find().populate('author');
-    return res.json(posts);
+    return res.status(200).json(posts); // 200 OK
   } catch (error) {
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: '게시물 조회 실패' });
   }
 };
 
@@ -19,16 +19,16 @@ exports.createPost = async (req, res) => {
       devDependencies,
     });
     await post.save();
-    return res.status(201).json(post);
+    return res.status(201).json(post); // 201 Created
   } catch (error) {
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: '게시물 작성 실패' });
   }
 };
 
 exports.updatePost = async (req, res) => {
   try {
     const { title, content, tags, devDependencies } = req.body;
-    const post = req.post; // 미들웨어에서 설정한 post 객체 사용
+    const post = req.post;
 
     post.title = title;
     post.content = content;
@@ -37,17 +37,17 @@ exports.updatePost = async (req, res) => {
     post.updatedAt = Date.now();
 
     const updatedPost = await post.save();
-    return res.json(updatedPost);
+    return res.status(200).json(updatedPost); // 200 OK
   } catch (error) {
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: '게시물 수정 실패' });
   }
 };
 
 exports.deletePost = async (req, res) => {
   try {
-    await Post.findByIdAndDelete(req.post._id); // 미들웨어에서 설정한 post 객체의 ID 사용
-    return res.json({ message: 'Post deleted successfully' });
+    await Post.findByIdAndDelete(req.post._id);
+    return res.status(204).json(); // 204 No Content
   } catch (error) {
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: '게시물 삭제 실패' });
   }
 };
