@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
+const Thumb = require('../models/Thumb');
 
 exports.createComment = async (req, res) => {
   try {
@@ -32,20 +33,36 @@ exports.getMyComments = async (req, res) => {
     return res.status(500).json({ message: '내 댓글 조회 실패' });
   }
 };
+
 exports.getCommentsByPostId = async (req, res) => {
   try {
-    const { postId } = req.params;
+    const postId = req.params.postId;
+    const userId = req.user?._id;
+    console.log(userId);
+    const comments = await Comment.find({ postId })
+      .populate('author', 'username')
+      .sort({ createdAt: -1 });
 
-    const comments = await Comment.find({ postId }).populate(
-      'author',
-      'username'
+    const commentsWithThumbs = await Promise.all(
+      comments.map(async (comment) => {
+        const [thumb, thumbsCount] = await Promise.all([
+          userId ? Thumb.findOne({ user: userId, comment: comment._id }) : null,
+          Thumb.countDocuments({ comment: comment._id }),
+        ]);
+
+        return {
+          ...comment.toObject(),
+          thumbed: !!thumb,
+          thumbsCount,
+        };
+      })
     );
 
-    return res.status(200).json({ comments });
+    return res.status(200).json(commentsWithThumbs);
   } catch (error) {
     return res
       .status(500)
-      .json({ message: '댓글 조회에 실패하였습니다.', error: error.message });
+      .json({ message: '댓글 조회 중 오류가 발생했습니다' });
   }
 };
 
@@ -76,5 +93,74 @@ exports.deleteComment = async (req, res) => {
     return res
       .status(500)
       .json({ message: '댓글 삭제 실패', error: error.message });
+  }
+};
+
+exports.toggleThumb = async (req, res) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.user._id;
+
+    const [comment, existingThumb] = await Promise.all([
+      Comment.findById(commentId),
+      Thumb.findOne({ user: userId, comment: commentId }),
+    ]);
+
+    if (!comment) {
+      return res.status(404).json({ message: '댓글을 찾을 수 없습니다' });
+    }
+
+    if (existingThumb) {
+      await Promise.all([
+        Thumb.deleteOne({ _id: existingThumb._id }),
+        Comment.findByIdAndUpdate(commentId, { $inc: { thumbsCount: -1 } }),
+      ]);
+
+      return res.status(200).json({
+        message: '좋아요가 취소되었습니다',
+        thumbed: false,
+        thumbsCount: comment.thumbsCount - 1,
+      });
+    }
+
+    const newThumb = new Thumb({ user: userId, comment: commentId });
+    await Promise.all([
+      newThumb.save(),
+      Comment.findByIdAndUpdate(commentId, { $inc: { thumbsCount: 1 } }),
+    ]);
+
+    return res.status(200).json({
+      message: '좋아요가 추가되었습니다',
+      thumbed: true,
+      thumbsCount: comment.thumbsCount + 1,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: '이미 좋아요를 누르셨습니다' });
+    }
+    return res
+      .status(500)
+      .json({ message: '좋아요 처리 중 오류가 발생했습니다' });
+  }
+};
+
+exports.getThumbStatus = async (req, res) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.user?._id;
+
+    const [thumb, thumbsCount] = await Promise.all([
+      userId ? Thumb.findOne({ user: userId, comment: commentId }) : null,
+      Thumb.countDocuments({ comment: commentId }),
+    ]);
+
+    return res.status(200).json({
+      thumbed: !!thumb,
+      thumbsCount,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: '좋아요 상태 조회 중 오류가 발생했습니다' });
   }
 };
