@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const likeSchema = new mongoose.Schema(
+const scrapSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -13,10 +13,13 @@ const likeSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
-// 같은 사용자가 같은 게시물에 중복 좋아요 방지
-likeSchema.index({ user: 1, post: 1 }, { unique: true });
+// 중복 스크랩 방지
+scrapSchema.index({ user: 1, post: 1 }, { unique: true });
 
-module.exports = mongoose.model('Like', likeSchema);
+module.exports = mongoose.model('Scrap', scrapSchema);
