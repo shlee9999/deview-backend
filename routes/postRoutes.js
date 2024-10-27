@@ -19,5 +19,7 @@ router.delete(
   postMiddleware.isPostAuthor,
   postController.deletePost
 );
+router.post('/:id/like', jwtMiddleware, postController.toggleLike);
+router.get('/:id/like', jwtMiddleware, postController.getLikeStatus);
 
 module.exports = router;
