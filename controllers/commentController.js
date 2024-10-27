@@ -38,7 +38,6 @@ exports.getCommentsByPostId = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id;
-    console.log(userId);
     const comments = await Comment.find({ postId })
       .populate('author', 'username')
       .sort({ createdAt: -1 });

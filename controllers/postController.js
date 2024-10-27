@@ -2,6 +2,7 @@ const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const Scrap = require('../models/Scrap');
+const View = require('../models/View');
 
 exports.getAllPosts = async (req, res) => {
   try {
@@ -28,6 +29,7 @@ exports.getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id; // 로그인하지 않은 사용자도 조회 가능하도록
+    const userIp = req.ip;
 
     // 게시물 조회와 함께 작성자 정보도 가져옴
     const post = await Post.findById(postId).populate({
@@ -39,10 +41,33 @@ exports.getPostDetail = async (req, res) => {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다' });
     }
 
+    // 24시간 이내 조회 기록 확인
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const existingView = await View.findOne({
+      post: postId,
+      $or: [{ ip: userIp }, { user: userId }],
+      createdAt: { $gte: oneDayAgo },
+    });
+
+    // 24시간 이내 조회 기록이 없으면 조회수 증가
+    if (!existingView) {
+      const newView = new View({
+        user: userId,
+        post: postId,
+        ip: userIp,
+      });
+
+      await Promise.all([
+        newView.save(),
+        Post.findByIdAndUpdate(postId, { $inc: { viewsCount: 1 } }),
+      ]);
+    }
+
     // 좋아요 수, 스크랩 수 조회
-    const [likesCount, scrapsCount] = await Promise.all([
+    const [likesCount, scrapsCount, viewsCount] = await Promise.all([
       Like.countDocuments({ post: postId }),
       Scrap.countDocuments({ post: postId }),
+      View.countDocuments({ post: postId }),
     ]);
 
     // 로그인한 사용자의 경우 좋아요, 스크랩 여부 확인
@@ -59,12 +84,11 @@ exports.getPostDetail = async (req, res) => {
       scraped = !!scrapStatus;
     }
 
-    // 조회수 증가 로직이 필요한 경우 여기에 추가
-
     const response = {
       ...post.toObject(),
       likesCount,
       scrapsCount,
+      viewsCount,
       liked,
       scraped,
     };
