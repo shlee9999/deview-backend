@@ -12,6 +12,7 @@ const postSchema = new mongoose.Schema(
     devDependencies: { type: [String], required: true },
     likesCount: { type: Number, default: 0 },
     viewsCount: { type: Number, default: 0 },
+    scrapsCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
