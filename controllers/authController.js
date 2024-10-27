@@ -2,7 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-exports.myself = async (req, res) => {
+exports.user = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .select('-password -refreshToken') // 민감한 정보 제외
