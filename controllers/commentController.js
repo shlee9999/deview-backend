@@ -23,12 +23,28 @@ exports.createComment = async (req, res) => {
       .json({ message: '댓글 작성 실패', error: error.message });
   }
 };
+
 exports.getMyComments = async (req, res) => {
   try {
-    const comments = await Comment.find({ author: req.user._id }).populate(
-      'author'
-    );
-    return res.status(200).json(comments); // 200 OK
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const comments = await Comment.find({ author: req.user._id })
+      .populate({ path: 'author', select: 'username' })
+      .skip(skip)
+      .limit(limit);
+
+    const totalComments = await Comment.countDocuments({
+      author: req.user._id,
+    });
+    const totalPages = Math.ceil(totalComments / limit);
+
+    return res.status(200).json({
+      comments,
+      totalPages,
+      currentPage: page,
+    });
   } catch (error) {
     return res.status(500).json({ message: '내 댓글 조회 실패' });
   }
@@ -38,9 +54,18 @@ exports.getCommentsByPostId = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id;
-    const comments = await Comment.find({ postId })
-      .populate('author', 'username')
-      .sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [comments, totalComments] = await Promise.all([
+      Comment.find({ postId })
+        .populate({ path: 'author', select: 'username' })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Comment.countDocuments({ postId }),
+    ]);
 
     const commentsWithThumbs = await Promise.all(
       comments.map(async (comment) => {
@@ -57,7 +82,14 @@ exports.getCommentsByPostId = async (req, res) => {
       })
     );
 
-    return res.status(200).json(commentsWithThumbs);
+    const totalPages = Math.ceil(totalComments / limit);
+
+    return res.status(200).json({
+      comments: commentsWithThumbs,
+      currentPage: page,
+      totalPages: totalPages,
+      totalComments: totalComments,
+    });
   } catch (error) {
     return res
       .status(500)
