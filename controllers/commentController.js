@@ -35,13 +35,24 @@ exports.getMyComments = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // 댓글에 연관된 게시물의 제목 가져오기
+    const commentsWithPostTitles = await Promise.all(
+      comments.map(async (comment) => {
+        const post = await Post.findOne({ _id: comment.postId }, 'title');
+        return {
+          ...comment.toObject(),
+          postTitle: post ? post.title : 'Unknown post',
+        };
+      })
+    );
+
     const totalComments = await Comment.countDocuments({
       author: req.user._id,
     });
     const totalPages = Math.ceil(totalComments / limit);
 
     return res.status(200).json({
-      comments,
+      comments: commentsWithPostTitles,
       totalPages,
       currentPage: page,
       totalComments,
