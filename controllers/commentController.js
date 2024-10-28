@@ -10,7 +10,11 @@ exports.createComment = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
-
+    await Post.findByIdAndUpdate(
+      postId,
+      { $inc: { commentsCount: 1 } },
+      { new: true, timestamps: false }
+    ); // 댓글 수 증가
     const author = req.user._id;
 
     const comment = new Comment({ postId, content, author });
@@ -128,7 +132,13 @@ exports.updateComment = async (req, res) => {
 exports.deleteComment = async (req, res) => {
   try {
     const comment = req.comment; // Set by isCommentAuthor middleware
+    const postId = comment.postId;
 
+    await Post.findByIdAndUpdate(
+      postId,
+      { $inc: { commentsCount: -1 } },
+      { new: true, timestamps: false }
+    ); // 게시물 댓글 수 감소
     await comment.deleteOne();
 
     return res.status(204).json(); // 204 No Content
