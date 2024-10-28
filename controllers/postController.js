@@ -334,15 +334,14 @@ exports.getMyScraps = async (req, res) => {
     const scraps = await Scrap.find({ user: req.user._id })
       .populate({
         path: 'post',
-        select: 'title content author createdAt updatedAt',
         populate: { path: 'author', select: 'username' },
       })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-
+    const posts = scraps.map((scrap) => scrap.post);
     return res.status(200).json({
-      scraps,
+      posts,
       currentPage: page,
       totalPages,
       totalScraps,
