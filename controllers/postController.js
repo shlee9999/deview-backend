@@ -6,11 +6,29 @@ const View = require('../models/View');
 
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find().populate({
-      path: 'author',
-      select: 'username',
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [posts, totalPosts] = await Promise.all([
+      Post.find()
+        .populate({
+          path: 'author',
+          select: 'username',
+        })
+        .skip(skip)
+        .limit(limit),
+      Post.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    return res.status(200).json({
+      posts: posts,
+      currentPage: page,
+      totalPages: totalPages,
+      totalPosts: totalPosts,
     });
-    return res.status(200).json(posts); // 200 OK
   } catch (error) {
     return res.status(500).json({ message: '게시물 조회 실패' });
   }
@@ -18,8 +36,25 @@ exports.getAllPosts = async (req, res) => {
 
 exports.getMyPosts = async (req, res) => {
   try {
-    const posts = await Post.find({ author: req.user._id }).populate('author');
-    return res.status(200).json(posts); // 200 OK
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await Post.countDocuments({ author: req.user._id });
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    const posts = await Post.find({ author: req.user._id })
+      .populate({ path: 'author', select: 'username' })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // 최신 게시물부터 정렬
+
+    return res.status(200).json({
+      posts,
+      currentPage: page,
+      totalPages,
+      totalPosts,
+    });
   } catch (error) {
     return res.status(500).json({ message: '내 게시물 조회 실패' });
   }
@@ -289,15 +324,29 @@ exports.getScrapStatus = async (req, res) => {
 
 exports.getMyScraps = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalScraps = await Scrap.countDocuments({ user: req.user._id });
+    const totalPages = Math.ceil(totalScraps / limit);
+
     const scraps = await Scrap.find({ user: req.user._id })
       .populate({
         path: 'post',
-        select: 'title content author createdAt',
+        select: 'title content author createdAt updatedAt',
         populate: { path: 'author', select: 'username' },
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    return res.status(200).json(scraps);
+    return res.status(200).json({
+      scraps,
+      currentPage: page,
+      totalPages,
+      totalScraps,
+    });
   } catch (error) {
     return res
       .status(500)
