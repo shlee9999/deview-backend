@@ -16,7 +16,7 @@ exports.createComment = async (req, res) => {
     const comment = new Comment({ postId, content, author });
     await comment.save();
 
-    return res.status(201).json({ message: '댓글 작성 성공', comment });
+    return res.status(201).json(comment);
   } catch (error) {
     return res
       .status(500)
@@ -44,6 +44,7 @@ exports.getMyComments = async (req, res) => {
       comments,
       totalPages,
       currentPage: page,
+      totalComments,
     });
   } catch (error) {
     return res.status(500).json({ message: '내 댓글 조회 실패' });
@@ -105,7 +106,7 @@ exports.updateComment = async (req, res) => {
     comment.content = content;
     await comment.save();
 
-    return res.status(200).json({ message: '댓글 수정 성공', comment });
+    return res.status(200).json(comment);
   } catch (error) {
     return res
       .status(500)

@@ -6,7 +6,7 @@ const optionalJwtMiddleware = require('../middleware/optionalJwtMiddleware');
 const jwtMiddleware = require('../middleware/jwtMiddleware');
 
 router.post('/', jwtMiddleware, commentController.createComment);
-router.get('/myself', jwtMiddleware, commentController.getMyComments);
+router.get('/user', jwtMiddleware, commentController.getMyComments);
 router.get(
   '/:postId',
   optionalJwtMiddleware,
