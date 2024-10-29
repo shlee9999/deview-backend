@@ -436,7 +436,7 @@ exports.getMostViewedPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 1; // 기본값으로 1개의 게시글을 반환
 
     const mostViewedPosts = await Post.find()
-      .sort({ viewsCount: -1 }) // 조회수 내림차순 정렬
+      .sort({ viewsCount: -1 })
       .limit(limit)
       .populate({
         path: 'author',
@@ -450,6 +450,35 @@ exports.getMostViewedPosts = async (req, res) => {
     return res.status(200).json(mostViewedPosts);
   } catch (error) {
     console.error('최다 조회수 게시글 조회 중 오류:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+exports.getMostViewedPostToday = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const mostViewedPost = await Post.findOne({
+      createdAt: { $gte: today, $lt: tomorrow },
+    })
+      .sort({ viewsCount: -1 })
+      .populate({
+        path: 'author',
+        select: 'username',
+      });
+
+    if (!mostViewedPost) {
+      return res
+        .status(404)
+        .json({ message: '오늘 올라온 게시글이 없습니다.' });
+    }
+
+    return res.status(200).json(mostViewedPost);
+  } catch (error) {
+    console.error('오늘 가장 조회수 높은 게시글 조회 중 오류:', error);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
