@@ -10,8 +10,18 @@ exports.getAllPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
-    const result = await getPaginated(Post, {}, page, limit, { createdAt: -1 });
+    const populateOptions = {
+      path: 'author',
+      select: 'username',
+    };
+    const result = await getPaginated(
+      Post,
+      {},
+      page,
+      limit,
+      { createdAt: -1 },
+      populateOptions
+    );
 
     return res.status(200).json({
       posts: result.items,
