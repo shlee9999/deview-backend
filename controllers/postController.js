@@ -3,57 +3,58 @@ const Comment = require('../models/Comment');
 const Like = require('../models/Like');
 const Scrap = require('../models/Scrap');
 const View = require('../models/View');
+const getPaginated = require('../utils/getPaginated');
 
 exports.getAllPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
-    const [posts, totalPosts] = await Promise.all([
-      Post.find()
-        .populate({
-          path: 'author',
-          select: 'username',
-        })
-        .skip(skip)
-        .limit(limit),
-      Post.countDocuments(),
-    ]);
-
-    const totalPages = Math.ceil(totalPosts / limit);
+    const result = await getPaginated(Post, {}, page, limit);
 
     return res.status(200).json({
-      posts: posts,
-      currentPage: page,
-      totalPages: totalPages,
-      totalPosts: totalPosts,
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
     });
   } catch (error) {
     return res.status(500).json({ message: '게시물 조회 실패' });
   }
 };
 
-exports.getMyPosts = async (req, res) => {
+exports.getPopularPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
-    const totalPosts = await Post.countDocuments({ author: req.user._id });
-    const totalPages = Math.ceil(totalPosts / limit);
-
-    const posts = await Post.find({ author: req.user._id })
-      .populate({ path: 'author', select: 'username' })
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 }); // 최신 게시물부터 정렬
+    const result = await getPaginated(Post, {}, page, limit, {
+      likesCount: -1,
+    });
 
     return res.status(200).json({
-      posts,
-      currentPage: page,
-      totalPages,
-      totalPosts,
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: '인기 게시물 조회 실패' });
+  }
+};
+exports.getMyPosts = async (req, res) => {
+  try {
+    const query = { user: req.user._id };
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await getPaginated(Post, query, page, limit);
+
+    return res.status(200).json({
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
     });
   } catch (error) {
     return res.status(500).json({ message: '내 게시물 조회 실패' });
@@ -326,25 +327,30 @@ exports.getMyScraps = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
 
-    const totalScraps = await Scrap.countDocuments({ user: req.user._id });
-    const totalPages = Math.ceil(totalScraps / limit);
+    const query = { user: req.user._id };
+    const sortOptions = { createdAt: -1 };
+    const populateOptions = {
+      path: 'post',
+      populate: { path: 'author', select: 'username' },
+    };
 
-    const scraps = await Scrap.find({ user: req.user._id })
-      .populate({
-        path: 'post',
-        populate: { path: 'author', select: 'username' },
-      })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    const posts = scraps.map((scrap) => scrap.post);
+    const result = await getPaginated(
+      Scrap,
+      query,
+      page,
+      limit,
+      sortOptions,
+      populateOptions
+    );
+
+    const posts = result.items.map((scrap) => scrap.post);
+
     return res.status(200).json({
       posts,
-      currentPage: page,
-      totalPages,
-      totalScraps,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalScraps: result.totalItems,
     });
   } catch (error) {
     return res

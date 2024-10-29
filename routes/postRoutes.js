@@ -7,6 +7,7 @@ const optionalJwtMiddleware = require('../middleware/optionalJwtMiddleware');
 
 router.get('/', postController.getAllPosts);
 router.get('/user', jwtMiddleware, postController.getMyPosts);
+router.get('/popular', optionalJwtMiddleware, postController.getPopularPosts);
 router.post('/', jwtMiddleware, postController.createPost);
 
 router.put(
