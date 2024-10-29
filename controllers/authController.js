@@ -174,3 +174,39 @@ exports.checkPassword = async (req, res) => {
     });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { password, username, group } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    if (password) {
+      user.password = password;
+    }
+
+    if (username) {
+      user.username = username;
+    }
+
+    if (group) {
+      user.group = group;
+    }
+
+    await user.save();
+
+    res
+      .status(200)
+      .json({ message: '사용자 정보가 성공적으로 업데이트되었습니다.' });
+  } catch (error) {
+    res.status(500).json({
+      message: '사용자 정보 업데이트 중 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'production' ? undefined : error.message,
+    });
+  }
+};
