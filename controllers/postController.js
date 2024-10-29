@@ -1,3 +1,4 @@
+//postController.js
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const Like = require('../models/Like');
@@ -10,7 +11,7 @@ exports.getAllPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const result = await getPaginated(Post, {}, page, limit);
+    const result = await getPaginated(Post, {}, page, limit, { createdAt: -1 });
 
     return res.status(200).json({
       posts: result.items,
@@ -404,5 +405,28 @@ exports.getMyScraps = async (req, res) => {
     return res
       .status(500)
       .json({ message: '스크랩 목록 조회 중 오류가 발생했습니다' });
+  }
+};
+
+exports.getRecentUnansweredPosts = async (req, res) => {
+  try {
+    const recentUnansweredPosts = await Post.find({ commentsCount: 0 })
+      .sort({ createdAt: -1 })
+      .limit(2)
+      .populate({
+        path: 'author',
+        select: 'username',
+      });
+
+    if (recentUnansweredPosts.length === 0) {
+      return res
+        .status(404)
+        .json({ message: '답변이 없는 최근 게시물이 없습니다.' });
+    }
+
+    return res.status(200).json(recentUnansweredPosts);
+  } catch (error) {
+    console.error('답변 없는 최근 게시물 조회 중 오류:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
