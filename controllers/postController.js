@@ -94,7 +94,12 @@ exports.searchPosts = async (req, res) => {
       populateOptions
     );
 
-    res.json(result);
+    res.json({
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
+    });
   } catch (error) {
     console.error('게시물 검색 중 오류 발생:', error);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
