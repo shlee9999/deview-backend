@@ -88,7 +88,8 @@ exports.login = async (req, res) => {
       httpOnly: true,
       //! secure: process.env.NODE_ENV === 'production',
       //! sameSite: 'strict',
-      //? sameSite: 'none',
+      sameSite: 'none',
+      domain: 'http://localhost:5173',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
