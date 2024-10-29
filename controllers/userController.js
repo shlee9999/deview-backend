@@ -1,18 +1,22 @@
-const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 
-exports.getUserRanking = async (req, res) => {
+exports.getUserRankings = async (req, res) => {
   try {
-    // Aggregate total likes for each user
-    const rankings = await Post.aggregate([
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // 각 사용자의 총 thumbsCount를 계산하고 정렬
+    const userRanking = await Comment.aggregate([
       {
         $group: {
           _id: '$author',
-          totalLikes: { $sum: '$likesCount' },
+          totalThumbsCount: { $sum: '$thumbsCount' },
         },
       },
-      {
-        $sort: { totalLikes: -1 }, // Sort by totalLikes descending
-      },
+      { $sort: { totalThumbsCount: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: 'users',
@@ -21,21 +25,37 @@ exports.getUserRanking = async (req, res) => {
           as: 'userDetails',
         },
       },
-      {
-        $unwind: '$userDetails',
-      },
+      { $unwind: '$userDetails' },
       {
         $project: {
           _id: 0,
+          userId: '$userDetails.id',
           username: '$userDetails.username',
-          totalLikes: 1,
+          group: '$userDetails.group',
+          totalThumbsCount: 1,
         },
       },
     ]);
 
-    res.json(rankings);
+    // 전체 사용자 수 계산
+    const totalUsers = await Comment.aggregate([
+      {
+        $group: {
+          _id: '$author',
+          totalThumbsCount: { $sum: '$thumbsCount' },
+        },
+      },
+    ]).count('count');
+
+    const totalPages = Math.ceil(totalUsers[0].count / limit);
+
+    res.json({
+      currentPage: page,
+      totalPages: totalPages,
+      userRanking: userRanking,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error fetching user ranking:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
