@@ -150,3 +150,27 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: '로그아웃 실패', error: error.message });
   }
 };
+
+exports.checkPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+    }
+
+    res.status(200).json({ message: '비밀번호가 일치합니다.' });
+  } catch (error) {
+    res.status(500).json({
+      message: '비밀번호 확인 중 오류가 발생했습니다.',
+      error: process.env.NODE_ENV === 'production' ? undefined : error.message,
+    });
+  }
+};
