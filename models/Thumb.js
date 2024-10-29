@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment-timezone');
 
 const thumbSchema = new mongoose.Schema(
   {
@@ -12,9 +13,22 @@ const thumbSchema = new mongoose.Schema(
       ref: 'Comment',
       required: true,
     },
+    createdAt: {
+      type: Date,
+      default: () => moment().tz('Asia/Seoul').toDate(),
+      get: (date) =>
+        moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+    },
+    updatedAt: {
+      type: Date,
+      default: () => moment().tz('Asia/Seoul').toDate(),
+      get: (date) =>
+        moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+    },
   },
   {
-    timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true },
   }
 );
 

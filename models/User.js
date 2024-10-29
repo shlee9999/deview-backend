@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment-timezone');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema(
@@ -8,8 +9,23 @@ const userSchema = new mongoose.Schema(
     password: { type: String },
     group: { type: String },
     refreshToken: { type: String },
+    createdAt: {
+      type: Date,
+      default: () => moment().tz('Asia/Seoul').toDate(),
+      get: (date) =>
+        moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+    },
+    updatedAt: {
+      type: Date,
+      default: () => moment().tz('Asia/Seoul').toDate(),
+      get: (date) =>
+        moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+    },
   },
-  { timestamps: true } // createdAt, updatedAt 필드 자동 추가
+  {
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  }
 );
 
 userSchema.pre('save', async function (next) {
