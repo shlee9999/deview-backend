@@ -42,6 +42,54 @@ exports.getPopularPosts = async (req, res) => {
     return res.status(500).json({ message: '인기 게시물 조회 실패' });
   }
 };
+
+exports.searchPosts = async (req, res) => {
+  try {
+    const {
+      keyword,
+      devDependencies = [],
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    const query = {};
+
+    if (keyword) {
+      query.$or = [
+        { title: { $regex: keyword, $options: 'i' } },
+        { content: { $regex: keyword, $options: 'i' } },
+      ];
+    }
+
+    if (devDependencies.length) {
+      query.devDependencies = { $all: devDependencies };
+    }
+
+    const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+
+    const populateOptions = {
+      path: 'author',
+      select: 'username email',
+    };
+
+    const result = await getPaginated(
+      Post,
+      query,
+      parseInt(page),
+      parseInt(limit),
+      sortOptions,
+      populateOptions
+    );
+
+    res.json(result);
+  } catch (error) {
+    console.error('게시물 검색 중 오류 발생:', error);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 exports.getMyPosts = async (req, res) => {
   try {
     const query = { user: req.user._id };
