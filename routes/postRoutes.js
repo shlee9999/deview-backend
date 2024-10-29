@@ -10,6 +10,7 @@ router.get('/user', jwtMiddleware, postController.getMyPosts);
 router.get('/popular', optionalJwtMiddleware, postController.getPopularPosts);
 router.get('/search', postController.searchPosts);
 router.get('/recent-unanswered', postController.getRecentUnansweredPosts);
+router.get('/most-viewed', postController.getMostViewedPosts);
 
 router.post('/', jwtMiddleware, postController.createPost);
 

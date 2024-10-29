@@ -430,3 +430,26 @@ exports.getRecentUnansweredPosts = async (req, res) => {
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+exports.getMostViewedPosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 1; // 기본값으로 1개의 게시글을 반환
+
+    const mostViewedPosts = await Post.find()
+      .sort({ viewsCount: -1 }) // 조회수 내림차순 정렬
+      .limit(limit)
+      .populate({
+        path: 'author',
+        select: 'username',
+      });
+
+    if (mostViewedPosts.length === 0) {
+      return res.status(404).json({ message: '게시글이 없습니다.' });
+    }
+
+    return res.status(200).json(mostViewedPosts);
+  } catch (error) {
+    console.error('최다 조회수 게시글 조회 중 오류:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
