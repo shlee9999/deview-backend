@@ -6,7 +6,7 @@ const postMiddleware = require('../middleware/postMiddleware');
 const optionalJwtMiddleware = require('../middleware/optionalJwtMiddleware');
 
 router.get('/', postController.getAllPosts);
-router.get('/user', jwtMiddleware, postController.getMyPosts);
+router.get('/myself', jwtMiddleware, postController.getMyPosts);
 router.get('/popular', postController.getPopularPosts);
 router.get('/search', postController.searchPosts);
 router.get('/recent-unanswered', postController.getRecentUnansweredPosts);
