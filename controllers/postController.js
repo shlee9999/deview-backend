@@ -190,6 +190,7 @@ exports.getPostDetail = async (req, res) => {
       viewsCount,
       liked,
       scraped,
+      isAuthor: userId && post.author._id.toString() === userId.toString(), // 추가
     };
 
     return res.status(200).json(response);
