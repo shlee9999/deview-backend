@@ -69,7 +69,8 @@ exports.searchPosts = async (req, res) => {
     if (keyword) {
       query.$or = [
         { title: { $regex: keyword, $options: 'i' } },
-        { content: { $regex: keyword, $options: 'i' } },
+        { detail: { $regex: keyword, $options: 'i' } },
+        { code: { $regex: keyword, $options: 'i' } },
       ];
     }
 
@@ -203,10 +204,11 @@ exports.getPostDetail = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-    const { title, content, devDependencies } = req.body;
+    const { title, code, detail, devDependencies } = req.body;
     const post = new Post({
       title,
-      content,
+      code,
+      detail,
       author: req.user._id,
       devDependencies,
     });
@@ -219,12 +221,12 @@ exports.createPost = async (req, res) => {
 
 exports.updatePost = async (req, res) => {
   try {
-    const { title, content, tags, devDependencies } = req.body;
+    const { title, code, detail, devDependencies } = req.body;
     const post = req.post;
 
     post.title = title;
-    post.content = content;
-    post.tags = tags;
+    post.code = code;
+    post.detail = detail;
     post.devDependencies = devDependencies;
 
     const updatedPost = await post.save();
