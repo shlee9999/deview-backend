@@ -11,12 +11,8 @@ const postSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    devDependencies: [
-      {
-        dependency: { type: String, required: true },
-        version: { type: String, required: true },
-      },
-    ],
+    devDependencies: [{ type: String, required: true }],
+    devVersions: [{ type: String, required: true }],
     likesCount: { type: Number, default: 0 },
     viewsCount: { type: Number, default: 0 },
     scrapsCount: { type: Number, default: 0 },

@@ -75,11 +75,8 @@ exports.searchPosts = async (req, res) => {
     }
 
     if (devDependencies.length) {
-      // dependency 필드만을 기준으로 검색
       query.devDependencies = {
-        $all: devDependencies.map((dep) => ({
-          $elemMatch: { dependency: dep },
-        })),
+        $all: devDependencies.map((dep) => dep.dependency),
       };
     }
 
@@ -216,7 +213,8 @@ exports.createPost = async (req, res) => {
       code,
       detail,
       author: req.user._id,
-      devDependencies,
+      devDependencies: devDependencies.map((dep) => dep.dependency),
+      devVersions: devDependencies.map((dep) => dep.version),
     });
 
     await post.save();
