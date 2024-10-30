@@ -75,7 +75,12 @@ exports.searchPosts = async (req, res) => {
     }
 
     if (devDependencies.length) {
-      query['devDependencies.dependency'] = { $all: devDependencies };
+      // dependency 필드만을 기준으로 검색
+      query.devDependencies = {
+        $all: devDependencies.map((dep) => ({
+          $elemMatch: { dependency: dep },
+        })),
+      };
     }
 
     const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
