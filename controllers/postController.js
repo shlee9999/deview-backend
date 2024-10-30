@@ -76,7 +76,7 @@ exports.searchPosts = async (req, res) => {
 
     if (devDependencies.length) {
       query.devDependencies = {
-        $all: devDependencies.map((dep) => dep.dependency),
+        $all: devDependencies,
       };
     }
 
