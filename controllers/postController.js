@@ -75,7 +75,7 @@ exports.searchPosts = async (req, res) => {
     }
 
     if (devDependencies.length) {
-      query.devDependencies = { $all: devDependencies };
+      query['devDependencies.dependency'] = { $all: devDependencies };
     }
 
     const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
