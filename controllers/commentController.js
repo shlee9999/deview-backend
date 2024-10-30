@@ -19,6 +19,7 @@ exports.createComment = async (req, res) => {
 
     const comment = new Comment({ postId, content, author });
     await comment.save();
+    comment.setCurrentUser(req.user._id);
 
     return res.status(201).json(comment);
   } catch (error) {
@@ -38,7 +39,7 @@ exports.getMyComments = async (req, res) => {
       .populate({ path: 'author', select: 'username' })
       .skip(skip)
       .limit(limit);
-
+    comments.forEach((comment) => comment.setCurrentUser(req.user._id));
     // 댓글에 연관된 게시물의 제목 가져오기
     const commentsWithPostTitles = await Promise.all(
       comments.map(async (comment) => {
@@ -82,6 +83,7 @@ exports.getCommentsByPostId = async (req, res) => {
         .limit(limit),
       Comment.countDocuments({ postId }),
     ]);
+    comments.forEach((comment) => comment.setCurrentUser(userId));
 
     const commentsWithThumbs = await Promise.all(
       comments.map(async (comment) => {
@@ -120,7 +122,7 @@ exports.updateComment = async (req, res) => {
 
     comment.content = content;
     await comment.save();
-
+    comment.setCurrentUser(req.user._id);
     return res.status(200).json(comment);
   } catch (error) {
     return res
