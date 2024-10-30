@@ -15,18 +15,17 @@ const thumbSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
-      default: () => moment().tz('Asia/Seoul').toDate(),
       get: (date) =>
         moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
     },
     updatedAt: {
       type: Date,
-      default: () => moment().tz('Asia/Seoul').toDate(),
       get: (date) =>
         moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
     },
   },
   {
+    timestamps: true,
     toJSON: { getters: true },
     toObject: { getters: true },
   }
