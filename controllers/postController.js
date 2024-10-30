@@ -107,11 +107,11 @@ exports.searchPosts = async (req, res) => {
 
 exports.getMyPosts = async (req, res) => {
   try {
-    const query = { user: req.user._id };
+    const query = { author: req.user._id };
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
-    const result = await getPaginated(Post, query, page, limit);
+    const sortOptions = { createdAt: -1 };
+    const result = await getPaginated(Post, query, page, limit, sortOptions);
 
     return res.status(200).json({
       posts: result.items,
