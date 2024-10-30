@@ -205,6 +205,7 @@ exports.getPostDetail = async (req, res) => {
 exports.createPost = async (req, res) => {
   try {
     const { title, code, detail, devDependencies } = req.body;
+
     const post = new Post({
       title,
       code,
@@ -212,6 +213,7 @@ exports.createPost = async (req, res) => {
       author: req.user._id,
       devDependencies,
     });
+
     await post.save();
     return res.status(201).json(post); // 201 Created
   } catch (error) {

@@ -1,4 +1,6 @@
+const Post = require('../models/Post');
 const Comment = require('../models/Comment');
+const getPaginated = require('../utils/getPaginated');
 
 exports.getUserRankings = async (req, res) => {
   try {
@@ -57,5 +59,28 @@ exports.getUserRankings = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user ranking:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.getUserPosts = async (req, res) => {
+  try {
+    const query = { author: req.params.userId };
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const sortOptions = { createdAt: -1 };
+
+    const result = await getPaginated(Post, query, page, limit, sortOptions);
+
+    return res.status(200).json({
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: '유저 게시물 조회 실패' });
   }
 };
