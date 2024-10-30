@@ -139,7 +139,7 @@ exports.getPostDetail = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다' });
     }
-
+    post.setCurrentUser(userId);
     // 24시간 이내 조회 기록 확인
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const existingView = await View.findOne({
@@ -182,8 +182,6 @@ exports.getPostDetail = async (req, res) => {
       liked = !!likeStatus;
       scraped = !!scrapStatus;
     }
-    const isAuthor =
-      !!userId && post.author._id.toString() === userId.toString();
 
     const response = {
       ...post.toObject(),
@@ -192,7 +190,6 @@ exports.getPostDetail = async (req, res) => {
       viewsCount,
       liked,
       scraped,
-      isAuthor,
     };
 
     return res.status(200).json(response);

@@ -28,9 +28,20 @@ const postSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { getters: true },
-    toObject: { getters: true },
+    toJSON: { getters: true, virtuals: true },
+    toObject: { getters: true, virtuals: true },
   }
 );
+
+postSchema.virtual('isAuthor').get(function () {
+  // 현재 사용자의 ID는 요청 객체(req.user._id)에서 받아와야 함
+  if (!this.currentUserId) return false;
+  return this.author._id.toString() === this.currentUserId.toString();
+});
+
+// 현재 사용자 ID를 설정하는 헬퍼 함수
+postSchema.methods.setCurrentUser = function (userId) {
+  this.currentUserId = userId;
+};
 
 module.exports = mongoose.model('Post', postSchema);

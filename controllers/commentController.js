@@ -19,7 +19,7 @@ exports.createComment = async (req, res) => {
 
     const comment = new Comment({ postId, content, author });
     await comment.save();
-    comment.setCurrentUser(req.user._id);
+    comment.setCurrentUser(author);
 
     return res.status(201).json(comment);
   } catch (error) {
