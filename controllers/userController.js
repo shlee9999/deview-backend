@@ -48,8 +48,8 @@ exports.getUserRankings = async (req, res) => {
         },
       },
     ]).count('count');
-
-    const totalPages = Math.ceil(totalUsers[0].count / limit);
+    console.log(totalUsers);
+    const totalPages = Math.ceil(totalUsers[0]?.count ?? 0 / limit);
 
     res.json({
       currentPage: page,

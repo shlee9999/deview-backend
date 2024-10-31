@@ -92,6 +92,9 @@ exports.login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    const socketId = req.body.socketId; // 클라이언트에서 소켓 ID를 전송해야 합니다.
+    io.sockets.sockets.set(user.id, socketId);
+
     res.status(200).json({ message: '로그인 성공', accessToken, userInfo }); // 200 OK
   } catch (error) {
     res.status(500).json({ message: '로그인 실패', error: error.message });
