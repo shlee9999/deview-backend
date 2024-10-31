@@ -11,7 +11,7 @@ exports.getAllPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const populateOptions = {
       path: 'author',
-      select: 'username',
+      select: 'userId',
     };
     const result = await getPaginated(
       Post,
@@ -37,11 +37,20 @@ exports.getPopularPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
-    const result = await getPaginated(Post, {}, page, limit, {
-      likesCount: -1,
-    });
-
+    const populateOptions = {
+      path: 'author',
+      select: 'userId',
+    };
+    const result = await getPaginated(
+      Post,
+      {},
+      page,
+      limit,
+      {
+        likesCount: -1,
+      },
+      populateOptions
+    );
     return res.status(200).json({
       posts: result.items,
       currentPage: result.currentPage,
@@ -84,7 +93,7 @@ exports.searchPosts = async (req, res) => {
 
     const populateOptions = {
       path: 'author',
-      select: 'username email',
+      select: 'userId',
     };
 
     const result = await getPaginated(
@@ -114,8 +123,18 @@ exports.getMyPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const sortOptions = { createdAt: -1 };
-    const result = await getPaginated(Post, query, page, limit, sortOptions);
-
+    const populateOptions = {
+      path: 'author',
+      select: 'userId',
+    };
+    const result = await getPaginated(
+      Post,
+      query,
+      page,
+      limit,
+      sortOptions,
+      populateOptions
+    );
     return res.status(200).json({
       posts: result.items,
       currentPage: result.currentPage,
@@ -136,7 +155,7 @@ exports.getPostDetail = async (req, res) => {
     // 게시물 조회와 함께 작성자 정보도 가져옴
     const post = await Post.findById(postId).populate({
       path: 'author',
-      select: 'username', // 필요한 작성자 정보만 선택
+      select: 'userId', // 필요한 작성자 정보만 선택
     });
 
     if (!post) {
@@ -403,7 +422,7 @@ exports.getMyScraps = async (req, res) => {
     const sortOptions = { createdAt: -1 };
     const populateOptions = {
       path: 'post',
-      populate: { path: 'author', select: 'username' },
+      populate: { path: 'author', select: 'userId' },
     };
 
     const result = await getPaginated(
@@ -437,7 +456,7 @@ exports.getRecentUnansweredPosts = async (req, res) => {
       .limit(2)
       .populate({
         path: 'author',
-        select: 'username',
+        select: 'userId',
       });
 
     if (recentUnansweredPosts.length === 0) {
@@ -462,7 +481,7 @@ exports.getMostViewedPosts = async (req, res) => {
       .limit(limit)
       .populate({
         path: 'author',
-        select: 'username',
+        select: 'userId',
       });
 
     if (mostViewedPosts.length === 0) {
@@ -489,7 +508,7 @@ exports.getMostViewedPostToday = async (req, res) => {
       .sort({ viewsCount: -1 })
       .populate({
         path: 'author',
-        select: 'username',
+        select: 'userId',
       });
 
     if (!mostViewedPost) {

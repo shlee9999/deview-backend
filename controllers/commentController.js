@@ -28,7 +28,7 @@ exports.createComment = async (req, res) => {
       // 데이터베이스에 항상 알림 저장
       const notification = new Notification({
         userId: postAuthorId,
-        title: `${user.id}님이 회원님의 게시물에 댓글을 달았습니다.`,
+        title: `${user.userId}님이 회원님의 게시물에 댓글을 달았습니다.`,
         postId: post._id,
         content,
       });
@@ -74,7 +74,7 @@ exports.getMyComments = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const comments = await Comment.find({ author: req.user._id })
-      .populate({ path: 'author', select: 'username' })
+      .populate({ path: 'author', select: 'userId' })
       .skip(skip)
       .limit(limit);
     comments.forEach((comment) => comment.setCurrentUser(req.user._id));
@@ -115,7 +115,7 @@ exports.getCommentsByPostId = async (req, res) => {
 
     const [comments, totalComments] = await Promise.all([
       Comment.find({ postId })
-        .populate({ path: 'author', select: 'username' })
+        .populate({ path: 'author', select: 'userId' })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),

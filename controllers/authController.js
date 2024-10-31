@@ -15,7 +15,7 @@ exports.user = async (req, res) => {
       });
     }
     const userInfo = {
-      userId: user.id,
+      userId: user.userId,
       username: user.username,
       group: user.group,
     };
@@ -29,10 +29,10 @@ exports.user = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { username, id, password, group } = req.body;
+  const { username, userId, password, group } = req.body;
 
   try {
-    const newUser = new User({ username, id, password, group });
+    const newUser = new User({ username, userId, password, group });
     await newUser.save();
     res.status(201).json({ message: '사용자 등록 성공' }); // 201 Created
   } catch (error) {
@@ -51,8 +51,9 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { id, password, socketId } = req.body;
-    const user = await User.findOne({ id });
+    const { userId, password, socketId } = req.body;
+    console.log({ userId, password, socketId });
+    const user = await User.findOne({ userId });
 
     if (!user) {
       return res
@@ -159,7 +160,7 @@ exports.autoLogin = async (req, res) => {
         );
 
         const userInfo = {
-          userId: user.id,
+          userId: user.userId,
           username: user.username,
           group: user.group,
         };

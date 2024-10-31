@@ -31,7 +31,7 @@ exports.getUserRankings = async (req, res) => {
       {
         $project: {
           _id: 0,
-          userId: '$userDetails.id',
+          userId: '$userDetails.userId',
           username: '$userDetails.username',
           group: '$userDetails.group',
           totalThumbsCount: 1,
