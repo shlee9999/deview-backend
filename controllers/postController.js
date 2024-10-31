@@ -206,15 +206,15 @@ exports.getPostDetail = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
-    const { title, code, detail, devDependencies } = req.body;
+    const { title, code, detail, devDependencies, devVersions } = req.body;
 
     const post = new Post({
       title,
       code,
       detail,
       author: req.user._id,
-      devDependencies: devDependencies.map((dep) => dep.dependency),
-      devVersions: devDependencies.map((dep) => dep.version),
+      devDependencies,
+      devVersions,
     });
 
     await post.save();
@@ -226,13 +226,14 @@ exports.createPost = async (req, res) => {
 
 exports.updatePost = async (req, res) => {
   try {
-    const { title, code, detail, devDependencies } = req.body;
+    const { title, code, detail, devDependencies, devVersions } = req.body;
     const post = req.post;
 
     post.title = title;
     post.code = code;
     post.detail = detail;
     post.devDependencies = devDependencies;
+    post.devVersions = devVersions;
 
     const updatedPost = await post.save();
     return res.status(200).json(updatedPost); // 200 OK
