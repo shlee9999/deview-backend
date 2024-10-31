@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
   cors: {
-    origin: ['http://localhost:5173', 'https://localhost:5173'], // 두 프로토콜 모두 허용
+    origin: [process.env.CLIENT_URL], // 두 프로토콜 모두 허용
     methods: ['GET', 'POST'],
     credentials: true,
   },
