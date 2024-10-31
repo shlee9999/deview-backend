@@ -1,7 +1,9 @@
+const { userSocketMap } = require('../config/socket');
+const Notification = require('../models/Notification');
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
 const Thumb = require('../models/Thumb');
-
+const User = require('../models/User');
 exports.createComment = async (req, res) => {
   try {
     const { postId, content } = req.body;
@@ -10,12 +12,48 @@ exports.createComment = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
+
+    // 댓글 작성자와 게시물 작성자가 동일한지 확인
+    const author = req.user._id;
+    const user = await User.findById(author); // 사용자 정보 조회
+
+    if (author.toString() === post.author.toString()) {
+      // 자신의 게시물에는 알림을 보내지 않음
+      console.log('자신의 게시물에는 알림을 보내지 않습니다.');
+    } else {
+      // 게시물 작성자에게 알림 전송
+      const io = req.app.get('io');
+      const postAuthorId = post.author.toString(); // 게시물 작성자 ID
+
+      // 데이터베이스에 항상 알림 저장
+      const notification = new Notification({
+        userId: postAuthorId,
+        title: `${user.id}님이 회원님의 게시물에 댓글을 달았습니다.`,
+        postId: post._id,
+        content,
+      });
+
+      await notification.save();
+
+      if (userSocketMap.has(postAuthorId)) {
+        // 게시물 작성자가 접속 중일 경우 실시간으로 알림 전송
+        const sockets = userSocketMap.get(postAuthorId);
+        sockets.forEach((socketId) => {
+          io.to(socketId).emit('newNotification', {
+            message: '새로운 댓글이 달렸습니다.',
+            postId: post._id,
+            commentContent: content,
+          });
+        });
+      }
+    }
+
+    // 댓글 저장 및 댓글 수 증가
     await Post.findByIdAndUpdate(
       postId,
       { $inc: { commentsCount: 1 } },
       { new: true, timestamps: false }
-    ); // 댓글 수 증가
-    const author = req.user._id;
+    );
 
     const comment = new Comment({ postId, content, author });
     await comment.save();
