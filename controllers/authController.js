@@ -1,3 +1,4 @@
+const { userSocketMap } = require('../config/socket');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -46,7 +47,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { id, password } = req.body;
+    const { id, password, socketId } = req.body;
     const user = await User.findOne({ id });
 
     if (!user) {
@@ -92,12 +93,80 @@ exports.login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const socketId = req.body.socketId; // 클라이언트에서 소켓 ID를 전송해야 합니다.
-    io.sockets.sockets.set(user.id, socketId);
+    // 유저 ID와 소켓 ID 매핑
+    if (userSocketMap.has(user.id)) {
+      userSocketMap.get(user.id).push(socketId);
+    } else {
+      userSocketMap.set(user.id, [socketId]);
+    }
 
     res.status(200).json({ message: '로그인 성공', accessToken, userInfo }); // 200 OK
   } catch (error) {
     res.status(500).json({ message: '로그인 실패', error: error.message });
+  }
+};
+
+exports.autoLogin = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken; // 쿠키에서 리프레시 토큰 가져오기
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: '리프레시 토큰이 없습니다.' });
+    }
+
+    // 리프레시 토큰 검증
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      async (err, decoded) => {
+        if (err) {
+          return res
+            .status(403)
+            .json({ message: '유효하지 않은 리프레시 토큰입니다.' });
+        }
+
+        // 유저 정보 가져오기
+        const user = await User.findById(decoded._id)
+          .select('-password -refreshToken')
+          .lean();
+        if (!user) {
+          return res
+            .status(404)
+            .json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 새로운 액세스 토큰 발급
+        const accessToken = jwt.sign(
+          { _id: user._id },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: '15m' }
+        );
+
+        // 소켓 ID와 유저 ID 매핑
+        const socketId = req.body.socketId;
+        if (userSocketMap.has(user._id.toString())) {
+          userSocketMap.get(user._id.toString()).push(socketId);
+        } else {
+          userSocketMap.set(user._id.toString(), [socketId]);
+        }
+
+        console.log(
+          `유저 ${user._id}가 자동 로그인되었습니다. Socket ID: ${socketId}`
+        );
+
+        // 응답으로 유저 정보와 새로운 액세스 토큰 반환
+        res.status(200).json({
+          message: '자동 로그인 성공',
+          accessToken,
+          user,
+        });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({
+      message: '자동 로그인 실패',
+      error: process.env.NODE_ENV === 'production' ? undefined : error.message,
+    });
   }
 };
 
@@ -144,6 +213,14 @@ exports.logout = async (req, res) => {
       if (user) {
         user.clearRefreshToken();
         await user.save();
+
+        // 유저의 소켓 ID 목록에서 해당 소켓 ID 제거
+        const userId = user._id.toString(); // 유저 ID 가져오기
+        if (userSocketMap.has(userId)) {
+          // 해당 유저의 모든 소켓 ID 제거
+          userSocketMap.delete(userId);
+          console.log(`유저 ${userId}의 모든 소켓이 로그아웃되었습니다.`);
+        }
       }
     }
 
