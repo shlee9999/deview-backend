@@ -14,8 +14,12 @@ exports.user = async (req, res) => {
         message: '사용자를 찾을 수 없습니다.',
       });
     }
-
-    res.status(200).json(user);
+    const userInfo = {
+      userId: user.id,
+      username: user.username,
+      group: user.group,
+    };
+    res.status(200).json(userInfo);
   } catch (error) {
     res.status(500).json({
       message: '서버 오류가 발생했습니다.',
@@ -80,7 +84,7 @@ exports.login = async (req, res) => {
     await user.save();
 
     const userInfo = {
-      id: user.id,
+      userId: user.id,
       username: user.username,
       group: user.group,
     };
@@ -154,11 +158,16 @@ exports.autoLogin = async (req, res) => {
           `유저 ${user._id}가 자동 로그인되었습니다. Socket ID: ${socketId}`
         );
 
+        const userInfo = {
+          userId: user.id,
+          username: user.username,
+          group: user.group,
+        };
+
         // 응답으로 유저 정보와 새로운 액세스 토큰 반환
         res.status(200).json({
-          message: '자동 로그인 성공',
           accessToken,
-          user,
+          userInfo,
         });
       }
     );
