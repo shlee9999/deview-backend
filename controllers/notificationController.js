@@ -60,3 +60,30 @@ exports.readNotification = async (req, res) => {
       .json({ message: '알림 읽기 실패', error: error.message });
   }
 };
+
+exports.deleteNotification = async (req, res) => {
+  try {
+    const notificationId = req.params.id;
+    const userId = req.user._id; // JWT 미들웨어에서 제공하는 사용자 ID
+
+    const notification = await Notification.findOneAndDelete({
+      _id: notificationId,
+      userId: userId,
+    });
+
+    if (!notification) {
+      return res
+        .status(404)
+        .json({ message: '알림을 찾을 수 없거나 삭제 권한이 없습니다.' });
+    }
+
+    return res
+      .status(200)
+      .json({ message: '알림이 성공적으로 삭제되었습니다.' });
+  } catch (error) {
+    console.error('알림 삭제 중 오류 발생:', error);
+    return res
+      .status(500)
+      .json({ message: '알림 삭제 중 오류가 발생했습니다.' });
+  }
+};
