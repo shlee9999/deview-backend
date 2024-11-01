@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
     await user.save();
 
     const userInfo = {
-      userId: user.id,
+      userId: user.userId,
       username: user.username,
       group: user.group,
     };
