@@ -87,3 +87,31 @@ exports.deleteNotification = async (req, res) => {
       .json({ message: '알림 삭제 중 오류가 발생했습니다.' });
   }
 };
+
+exports.readAllNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id; // JWT 미들웨어에서 제공하는 사용자 ID
+
+    // 현재 사용자의 모든 읽지 않은 알림을 읽음 처리
+    const result = await Notification.updateMany(
+      { userId: userId, isRead: false }, // 조건: 해당 사용자의 읽지 않은 알림
+      { isRead: true } // 업데이트: isRead를 true로 설정
+    );
+
+    // 수정된 문서 수를 확인
+    if (result.modifiedCount === 0) {
+      return res.status(200).json({ message: '읽지 않은 알림이 없습니다.' });
+    }
+
+    return res.status(200).json({
+      message: '모든 알림이 읽음 처리되었습니다.',
+      modifiedCount: result.modifiedCount, // 업데이트된 알림 개수 반환
+    });
+  } catch (error) {
+    console.error('알림 전체 읽음 처리 중 오류 발생:', error);
+    return res.status(500).json({
+      message: '알림 전체 읽음 처리 중 오류가 발생했습니다.',
+      error: error.message,
+    });
+  }
+};
