@@ -12,7 +12,7 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: true,
     }, // 알림 메시지 내용
-    postId: {
+    post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
       required: false,

@@ -29,7 +29,7 @@ exports.createComment = async (req, res) => {
       const notification = new Notification({
         user: postAuthorId,
         title: `${user.userId}님이 회원님의 게시물에 댓글을 달았습니다.`,
-        postId: post._id,
+        post: post._id,
         content,
         sender: author,
       });

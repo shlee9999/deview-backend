@@ -14,7 +14,7 @@ exports.getNotifications = async (req, res) => {
         select: 'userId',
       },
       {
-        path: 'postId',
+        path: 'post',
         select: '_id',
       },
       {
