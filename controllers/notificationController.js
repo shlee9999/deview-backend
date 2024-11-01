@@ -1,25 +1,38 @@
 const Notification = require('../models/Notification');
-const getPaginated = require('../utils/getPaginated'); // getPaginated 함수 import
+const getPaginated = require('../utils/getPaginated');
 
 exports.getNotifications = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const query = { userId: req.user._id };
+    const query = { user: req.user._id };
     const sortOptions = { createdAt: -1 };
-
+    const populateOptions = [
+      {
+        path: 'user',
+        select: 'userId',
+      },
+      {
+        path: 'postId',
+        select: '_id',
+      },
+      {
+        path: 'sender',
+        select: 'userId',
+      },
+    ];
     const paginatedResult = await getPaginated(
       Notification,
       query,
       page,
       limit,
-      sortOptions
+      sortOptions,
+      populateOptions
     );
 
-    // 읽지 않은 알림 개수 가져오기
     const unreadNotificationsCount = await Notification.countDocuments({
-      userId: req.user._id,
+      user: req.user._id,
       isRead: false,
     });
 
@@ -28,7 +41,7 @@ exports.getNotifications = async (req, res) => {
       currentPage: paginatedResult.currentPage,
       totalPages: paginatedResult.totalPages,
       totalNotifications: paginatedResult.totalItems,
-      unreadNotificationsCount, // 읽지 않은 알림 개수 포함
+      unreadNotificationsCount,
     });
   } catch (error) {
     return res
@@ -42,7 +55,7 @@ exports.readNotification = async (req, res) => {
     const notificationId = req.params.id;
 
     const notification = await Notification.findOneAndUpdate(
-      { _id: notificationId, userId: req.user._id },
+      { _id: notificationId, user: req.user._id },
       { isRead: true },
       { new: true }
     );
@@ -64,11 +77,11 @@ exports.readNotification = async (req, res) => {
 exports.deleteNotification = async (req, res) => {
   try {
     const notificationId = req.params.id;
-    const userId = req.user._id; // JWT 미들웨어에서 제공하는 사용자 ID
+    const user = req.user._id;
 
     const notification = await Notification.findOneAndDelete({
       _id: notificationId,
-      userId: userId,
+      user,
     });
 
     if (!notification) {
@@ -90,22 +103,20 @@ exports.deleteNotification = async (req, res) => {
 
 exports.readAllNotifications = async (req, res) => {
   try {
-    const userId = req.user._id; // JWT 미들웨어에서 제공하는 사용자 ID
+    const user = req.user._id;
 
-    // 현재 사용자의 모든 읽지 않은 알림을 읽음 처리
     const result = await Notification.updateMany(
-      { userId: userId, isRead: false }, // 조건: 해당 사용자의 읽지 않은 알림
-      { isRead: true } // 업데이트: isRead를 true로 설정
+      { user, isRead: false },
+      { isRead: true }
     );
 
-    // 수정된 문서 수를 확인
     if (result.modifiedCount === 0) {
       return res.status(200).json({ message: '읽지 않은 알림이 없습니다.' });
     }
 
     return res.status(200).json({
       message: '모든 알림이 읽음 처리되었습니다.',
-      modifiedCount: result.modifiedCount, // 업데이트된 알림 개수 반환
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error('알림 전체 읽음 처리 중 오류 발생:', error);

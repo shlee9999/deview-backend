@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 
 const notificationSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
@@ -30,6 +30,11 @@ const notificationSchema = new mongoose.Schema(
       get: (date) =>
         moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
     }, // 알림 생성 시간
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   {
     timestamps: true,

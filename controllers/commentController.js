@@ -27,10 +27,11 @@ exports.createComment = async (req, res) => {
 
       // 데이터베이스에 항상 알림 저장
       const notification = new Notification({
-        userId: postAuthorId,
+        user: postAuthorId,
         title: `${user.userId}님이 회원님의 게시물에 댓글을 달았습니다.`,
         postId: post._id,
         content,
+        sender: author,
       });
 
       await notification.save();
