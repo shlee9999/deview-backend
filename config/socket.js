@@ -4,7 +4,7 @@ const userSocketMap = new Map();
 const configureSocket = (server) => {
   const io = socketIO(server, {
     cors: {
-      origin: [process.env.CLIENT_URL],
+      origin: [process.env.CLIENT_URL, process.env.CLIENT_PRODUCTION_URL],
       methods: ['GET', 'POST'],
       credentials: true,
     },
