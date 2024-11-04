@@ -2,34 +2,34 @@ const express = require('express');
 const router = express.Router();
 const commentController = require('../controllers/commentController');
 const commentMiddleware = require('../middleware/commentMiddleware');
-const optionalJwtMiddleware = require('../middleware/optionalJwtMiddleware');
-const jwtMiddleware = require('../middleware/jwtMiddleware');
+const optionalAuthMiddleware = require('../middleware/optionalAuthMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-router.post('/', jwtMiddleware, commentController.createComment);
-router.get('/myself', jwtMiddleware, commentController.getMyComments);
+router.post('/', verifyToken, commentController.createComment);
+router.get('/myself', verifyToken, commentController.getMyComments);
 router.get(
   '/:postId',
-  optionalJwtMiddleware,
+  optionalAuthMiddleware,
   commentController.getCommentsByPostId
 );
 router.patch(
   '/:commentId',
-  jwtMiddleware,
+  verifyToken,
   commentMiddleware.isCommentAuthor,
   commentController.updateComment
 );
 router.delete(
   '/:commentId',
-  jwtMiddleware,
+  verifyToken,
   commentMiddleware.isCommentAuthor,
   commentController.deleteComment
 );
 
 // 댓글 좋아요 관련 라우트
-router.post('/:commentId/thumb', jwtMiddleware, commentController.toggleThumb);
+router.post('/:commentId/thumb', verifyToken, commentController.toggleThumb);
 router.get(
   '/:commentId/thumb',
-  optionalJwtMiddleware,
+  optionalAuthMiddleware,
   commentController.getThumbStatus
 );
 

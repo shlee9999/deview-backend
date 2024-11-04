@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
-const jwtMiddleware = require('../middleware/jwtMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-router.get('/', jwtMiddleware, notificationController.getNotifications);
+router.get('/', verifyToken, notificationController.getNotifications);
 router.put(
   '/read-all',
-  jwtMiddleware,
+  verifyToken,
   notificationController.readAllNotifications
 );
 
-router.delete('/:id', jwtMiddleware, notificationController.deleteNotification);
-router.put('/:id/read', jwtMiddleware, notificationController.readNotification);
+router.delete('/:id', verifyToken, notificationController.deleteNotification);
+router.put('/:id/read', verifyToken, notificationController.readNotification);
 
 module.exports = router;

@@ -1,44 +1,44 @@
 const express = require('express');
 const router = express.Router();
-const jwtMiddleware = require('../middleware/jwtMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const postController = require('../controllers/postController');
 const postMiddleware = require('../middleware/postMiddleware');
-const optionalJwtMiddleware = require('../middleware/optionalJwtMiddleware');
+const optionalAuthMiddleware = require('../middleware/optionalAuthMiddleware');
 
 router.get('/', postController.getAllPosts);
-router.get('/myself', jwtMiddleware, postController.getMyPosts);
+router.get('/myself', verifyToken, postController.getMyPosts);
 router.get('/popular', postController.getPopularPosts);
 router.get('/search', postController.searchPosts);
 router.get('/recent-unanswered', postController.getRecentUnansweredPosts);
 router.get('/most-viewed', postController.getMostViewedPosts);
 router.get('/most-viewed-today', postController.getMostViewedPostToday);
 
-router.post('/', jwtMiddleware, postController.createPost);
+router.post('/', verifyToken, postController.createPost);
 
 router.put(
   '/:postId',
-  jwtMiddleware,
+  verifyToken,
   postMiddleware.isPostAuthor,
   postController.updatePost
 );
 
 router.delete(
   '/:postId',
-  jwtMiddleware,
+  verifyToken,
   postMiddleware.isPostAuthor,
   postController.deletePost
 );
 
 //게시물 좋아요
-router.post('/:postId/like', jwtMiddleware, postController.toggleLike);
-router.get('/:postId/like', jwtMiddleware, postController.getLikeStatus);
+router.post('/:postId/like', verifyToken, postController.toggleLike);
+router.get('/:postId/like', verifyToken, postController.getLikeStatus);
 
 //게시물 스크랩
-router.post('/:postId/scrap', jwtMiddleware, postController.toggleScrap);
-router.get('/:postId/scrap', jwtMiddleware, postController.getScrapStatus);
-router.get('/scraps', jwtMiddleware, postController.getMyScraps);
+router.post('/:postId/scrap', verifyToken, postController.toggleScrap);
+router.get('/:postId/scrap', verifyToken, postController.getScrapStatus);
+router.get('/scraps', verifyToken, postController.getMyScraps);
 
 //게시물 상세조회
-router.get('/:postId', optionalJwtMiddleware, postController.getPostDetail);
+router.get('/:postId', optionalAuthMiddleware, postController.getPostDetail);
 
 module.exports = router;

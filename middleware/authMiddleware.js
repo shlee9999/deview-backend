@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
+exports.verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
@@ -31,4 +31,9 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-module.exports = verifyToken;
+exports.isAdmin = async (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).send({ error: '관리자 권한이 필요합니다.' });
+  }
+  next();
+};

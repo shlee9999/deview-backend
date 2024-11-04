@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-function optionalJwtMiddleware(req, res, next) {
+function optionalAuthMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -19,4 +19,4 @@ function optionalJwtMiddleware(req, res, next) {
   });
 }
 
-module.exports = optionalJwtMiddleware;
+module.exports = optionalAuthMiddleware;
