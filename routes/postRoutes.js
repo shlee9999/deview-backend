@@ -22,14 +22,14 @@ router.post('/', verifyToken, postController.createPost);
 router.put(
   '/:postId',
   verifyToken,
-  postMiddleware.isPostAuthor,
+  postMiddleware.isPostAuthorOrAdmin,
   postController.updatePost
 );
 
 router.delete(
   '/:postId',
   verifyToken,
-  postMiddleware.isPostAuthor,
+  postMiddleware.isPostAuthorOrAdmin,
   postController.deletePost
 );
 
