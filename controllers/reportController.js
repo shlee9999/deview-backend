@@ -40,7 +40,10 @@ exports.createReport = async (req, res) => {
     if (post.reportCount >= 10) {
       post.hidden = true;
       await post.save();
-      // 관리자에게 알림 전송 등의 추가 조치 가능
+      // 관리자에게 알림 전송
+      io.to(getAdminSocketId()).emit('adminNotification', {
+        message: '새로운 사용자가 등록되었습니다.',
+      });
     }
 
     res.status(201).json({ message: '게시물이 성공적으로 신고되었습니다.' });

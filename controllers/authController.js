@@ -18,6 +18,7 @@ exports.user = async (req, res) => {
       userId: user.userId,
       username: user.username,
       group: user.group,
+      role: user.role,
     };
     res.status(200).json(userInfo);
   } catch (error) {
@@ -87,6 +88,7 @@ exports.login = async (req, res) => {
       userId: user.userId,
       username: user.username,
       group: user.group,
+      role: user.role,
     };
 
     res.cookie('refreshToken', refreshToken, {
@@ -156,11 +158,12 @@ exports.autoLogin = async (req, res) => {
         console.log(
           `유저 ${user._id}가 자동 로그인되었습니다. Socket ID: ${socketId}`
         );
-
+        console.log(user.role);
         const userInfo = {
           userId: user.userId,
           username: user.username,
           group: user.group,
+          role: user.role,
         };
 
         // 응답으로 유저 정보와 새로운 액세스 토큰 반환

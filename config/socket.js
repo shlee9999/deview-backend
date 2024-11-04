@@ -1,6 +1,8 @@
 const socketIO = require('socket.io');
 
+let adminSocketIds = []; // 관리자 소켓 ID를 저장할 전역 변수
 const userSocketMap = new Map();
+
 const configureSocket = (server) => {
   const io = socketIO(server, {
     cors: {
@@ -10,22 +12,33 @@ const configureSocket = (server) => {
     },
   });
 
-  // 웹소켓 연결 이벤트 처리
   io.on('connection', (socket) => {
     console.log('클라이언트가 연결되었습니다.');
 
-    // 클라이언트로부터 메시지 수신
+    // 관리자 연결 처리
+    socket.on('adminConnect', () => {
+      adminSocketIds.push(socket.id);
+      console.log('관리자가 연결되었습니다. 소켓 ID:', adminSocketIds);
+      socket.emit('adminConnected', { success: true });
+    });
+
     socket.on('message', (data) => {
       console.log('클라이언트로부터 메시지를 받았습니다:', data);
-      // 받은 메시지 처리 로직 작성
-      // ...
-      // 클라이언트에게 응답 메시지 전송
+
+      // 관리자에게 메시지 전달 예시
+      adminSocketIds.forEach((adminSocketId) =>
+        io.to(adminSocketId).emit('adminMessage', data)
+      );
+
       socket.emit('message', { text: '서버에서 응답 메시지를 보냅니다.' });
     });
 
-    // 연결 종료 이벤트 처리
     socket.on('disconnect', () => {
-      // 모든 유저에 대해 해당 소켓이 있으면 제거
+      if (adminSocketIds.includes(socket.id)) {
+        console.log('관리자 연결이 해제되었습니다.');
+        adminSocketIds = adminSocketIds.filter((id) => id !== socket.id);
+      }
+
       for (const [userId, sockets] of userSocketMap.entries()) {
         const updatedSockets = sockets.filter((id) => id !== socket.id);
 
@@ -45,4 +58,7 @@ const configureSocket = (server) => {
   return io;
 };
 
-module.exports = { configureSocket, userSocketMap };
+// 관리자 소켓 ID를 가져오는 함수
+const getAdminSocketIds = () => adminSocketIds;
+
+module.exports = { configureSocket, userSocketMap, getAdminSocketIds };
