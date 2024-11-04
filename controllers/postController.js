@@ -430,12 +430,12 @@ exports.getMyScraps = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
-    const query = { user: req.user._id, hidden: false };
+    const query = { user: req.user._id };
     const sortOptions = { createdAt: -1 };
     const populateOptions = {
       path: 'post',
       populate: { path: 'author', select: 'userId' },
+      match: { hidden: false }, // hidden이 false인 것만 필터링
     };
 
     const result = await getPaginated(
@@ -447,13 +447,15 @@ exports.getMyScraps = async (req, res) => {
       populateOptions
     );
 
-    const posts = result.items.map((scrap) => scrap.post);
+    const posts = result.items
+      .map((scrap) => scrap.post)
+      .filter((post) => post !== null); // null 값 제거
 
     return res.status(200).json({
       posts,
       currentPage: result.currentPage,
       totalPages: result.totalPages,
-      totalScraps: result.totalItems,
+      totalScraps: posts.length, // 필터링된 포스트 수로 변경
     });
   } catch (error) {
     return res
