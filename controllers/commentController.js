@@ -1,4 +1,5 @@
 const { userSocketMap } = require('../config/socket');
+const getPaginated = require('../utils/getPaginated');
 const Notification = require('../models/Notification');
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
@@ -76,6 +77,7 @@ exports.getMyComments = async (req, res) => {
 
     const comments = await Comment.find({ author: req.user._id })
       .populate({ path: 'author', select: 'userId' })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
     comments.forEach((comment) => comment.setCurrentUser(req.user._id));
