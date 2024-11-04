@@ -40,5 +40,5 @@ router.get('/scraps', verifyToken, postController.getMyScraps);
 
 //게시물 상세조회
 router.get('/:postId', optionalAuthMiddleware, postController.getPostDetail);
-
+router.get('/hidden', postController.getHiddenPosts);
 module.exports = router;

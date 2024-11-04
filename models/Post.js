@@ -48,17 +48,4 @@ postSchema.methods.setCurrentUser = function (userId) {
   this.currentUserId = userId;
 };
 
-postSchema.pre('find', function () {
-  this.where({ hidden: false });
-});
-
-postSchema.pre('findOne', function () {
-  this.where({ hidden: false });
-});
-
-// aggregate에도 적용하려면:
-postSchema.pre('aggregate', function () {
-  this.pipeline().unshift({ $match: { hidden: false } });
-});
-
 module.exports = mongoose.model('Post', postSchema);

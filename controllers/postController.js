@@ -9,13 +9,14 @@ exports.getAllPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const query = { hidden: false };
     const populateOptions = {
       path: 'author',
       select: 'userId',
     };
     const result = await getPaginated(
       Post,
-      {},
+      query,
       page,
       limit,
       { createdAt: -1 },
@@ -37,13 +38,14 @@ exports.getPopularPosts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const query = { hidden: false };
     const populateOptions = {
       path: 'author',
       select: 'userId',
     };
     const result = await getPaginated(
       Post,
-      {},
+      query,
       page,
       limit,
       {
@@ -73,7 +75,7 @@ exports.searchPosts = async (req, res) => {
       sortOrder = 'desc',
     } = req.query;
 
-    const query = {};
+    const query = { hidden: false };
 
     if (keyword) {
       query.$or = [
@@ -119,7 +121,7 @@ exports.searchPosts = async (req, res) => {
 
 exports.getMyPosts = async (req, res) => {
   try {
-    const query = { author: req.user._id };
+    const query = { author: req.user._id, hidden: false };
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const sortOptions = { createdAt: -1 };
@@ -149,12 +151,11 @@ exports.getMyPosts = async (req, res) => {
 exports.getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
-    console.log(postId);
     const userId = req.user?._id; // 로그인하지 않은 사용자도 조회 가능하도록
     const userIp = req.ip;
 
     // 게시물 조회와 함께 작성자 정보도 가져옴
-    const post = await Post.findById(postId).populate({
+    const post = await Post.findOne({ _id: postId, hidden: false }).populate({
       path: 'author',
       select: 'userId', // 필요한 작성자 정보만 선택
     });
@@ -399,7 +400,7 @@ exports.getScrapStatus = async (req, res) => {
     const userId = req.user._id;
 
     const [scrap, scrapsCount] = await Promise.all([
-      Scrap.findOne({ user: userId, post: postId }),
+      Scrap.findOne({ user: userId, post: postId, hidden: false }),
       Scrap.countDocuments({ post: postId }),
     ]);
 
@@ -419,7 +420,7 @@ exports.getMyScraps = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const query = { user: req.user._id };
+    const query = { user: req.user._id, hidden: false };
     const sortOptions = { createdAt: -1 };
     const populateOptions = {
       path: 'post',
@@ -452,7 +453,10 @@ exports.getMyScraps = async (req, res) => {
 
 exports.getRecentUnansweredPosts = async (req, res) => {
   try {
-    const recentUnansweredPosts = await Post.find({ commentsCount: 0 })
+    const recentUnansweredPosts = await Post.find({
+      commentsCount: 0,
+      hidden: false,
+    })
       .sort({ createdAt: -1 })
       .limit(2)
       .populate({
@@ -477,7 +481,7 @@ exports.getMostViewedPosts = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 1; // 기본값으로 1개의 게시글을 반환
 
-    const mostViewedPosts = await Post.find()
+    const mostViewedPosts = await Post.find({ hidden: false })
       .sort({ viewsCount: -1 })
       .limit(limit)
       .populate({
@@ -505,6 +509,7 @@ exports.getMostViewedPostToday = async (req, res) => {
 
     const mostViewedPost = await Post.findOne({
       createdAt: { $gte: today, $lt: tomorrow },
+      hidden: false,
     })
       .sort({ viewsCount: -1 })
       .populate({
@@ -522,5 +527,16 @@ exports.getMostViewedPostToday = async (req, res) => {
   } catch (error) {
     console.error('오늘 가장 조회수 높은 게시글 조회 중 오류:', error);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+exports.getHiddenPosts = async (req, res) => {
+  try {
+    const hiddenPosts = await Post.find({ hidden: true })
+      .populate('author', 'username')
+      .sort({ createdAt: -1 });
+
+    res.json(hiddenPosts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
