@@ -10,6 +10,7 @@ exports.getAllPosts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const query = { hidden: false };
+    const sortOptions = { createdAt: -1 };
     const populateOptions = {
       path: 'author',
       select: 'userId',
@@ -19,9 +20,12 @@ exports.getAllPosts = async (req, res) => {
       query,
       page,
       limit,
-      { createdAt: -1 },
+      sortOptions,
       populateOptions
     );
+
+    if (result.items.length === 0)
+      return res.status(404).json({ message: '최근 게시물이 없습니다.' });
 
     return res.status(200).json({
       posts: result.items,
@@ -53,6 +57,10 @@ exports.getPopularPosts = async (req, res) => {
       },
       populateOptions
     );
+
+    if (result.items.length === 0)
+      return res.status(404).json({ message: '인기 게시물이 없습니다.' });
+
     return res.status(200).json({
       posts: result.items,
       currentPage: result.currentPage,
