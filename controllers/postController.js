@@ -529,14 +529,32 @@ exports.getMostViewedPostToday = async (req, res) => {
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
 exports.getHiddenPosts = async (req, res) => {
   try {
-    const hiddenPosts = await Post.find({ hidden: true })
-      .populate('author', 'username')
-      .sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const query = { hidden: true };
+    const sortOptions = { createdAt: -1 };
+    const populateOptions = { path: 'author', select: 'userId' };
 
-    res.json(hiddenPosts);
+    const result = await getPaginated(
+      Post,
+      query,
+      page,
+      limit,
+      sortOptions,
+      populateOptions
+    );
+
+    return res.status(200).json({
+      posts: result.items,
+      currentPage: result.currentPage,
+      totalPages: result.totalPages,
+      totalPosts: result.totalItems,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('숨겨진 게시물 조회 중 오류:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
