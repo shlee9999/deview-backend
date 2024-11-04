@@ -12,6 +12,7 @@ router.get('/search', postController.searchPosts);
 router.get('/recent-unanswered', postController.getRecentUnansweredPosts);
 router.get('/most-viewed', postController.getMostViewedPosts);
 router.get('/most-viewed-today', postController.getMostViewedPostToday);
+router.get('/hidden', postController.getHiddenPosts);
 
 router.post('/', verifyToken, postController.createPost);
 
@@ -40,5 +41,4 @@ router.get('/scraps', verifyToken, postController.getMyScraps);
 
 //게시물 상세조회
 router.get('/:postId', optionalAuthMiddleware, postController.getPostDetail);
-router.get('/hidden', postController.getHiddenPosts);
 module.exports = router;
