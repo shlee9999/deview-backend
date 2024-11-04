@@ -31,7 +31,7 @@ exports.getUserRankings = async (req, res) => {
       { $unwind: '$userDetails' },
       {
         $project: {
-          _id: 0,
+          _id: 1,
           userId: '$userDetails.userId',
           username: '$userDetails.username',
           group: '$userDetails.group',
