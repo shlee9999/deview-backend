@@ -149,6 +149,7 @@ exports.getMyPosts = async (req, res) => {
 exports.getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
+    console.log(postId);
     const userId = req.user?._id; // 로그인하지 않은 사용자도 조회 가능하도록
     const userIp = req.ip;
 

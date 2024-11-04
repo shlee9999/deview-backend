@@ -158,7 +158,7 @@ exports.autoLogin = async (req, res) => {
         console.log(
           `유저 ${user._id}가 자동 로그인되었습니다. Socket ID: ${socketId}`
         );
-        console.log(user.role);
+
         const userInfo = {
           userId: user.userId,
           username: user.username,
