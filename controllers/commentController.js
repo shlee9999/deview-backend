@@ -1,5 +1,4 @@
 const { userSocketMap } = require('../config/socket');
-const getPaginated = require('../utils/getPaginated');
 const Notification = require('../models/Notification');
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
