@@ -1,6 +1,7 @@
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const getPaginated = require('../utils/getPaginated');
+const User = require('../models/User');
 
 exports.getUserRankings = async (req, res) => {
   try {
@@ -64,7 +65,12 @@ exports.getUserRankings = async (req, res) => {
 
 exports.getUserPosts = async (req, res) => {
   try {
-    const query = { author: req.params.userId };
+    const query = { author: req.params.id };
+    const user = await User.findById(req.params.id).select('userId');
+    if (!user) {
+      return res.status(404).json({ message: '존재하지 않는 유저입니다.' });
+    }
+    const userId = user ? user.userId : null;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const sort = req.query.sort || 'latest'; // 기본값은 최신순
@@ -83,6 +89,7 @@ exports.getUserPosts = async (req, res) => {
       currentPage: result.currentPage,
       totalPages: result.totalPages,
       totalPosts: result.totalItems,
+      userId,
     });
   } catch (error) {
     console.error('유저 게시물 조회 중 오류:', error);
