@@ -160,14 +160,17 @@ exports.getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id; // 로그인하지 않은 사용자도 조회 가능하도록
+    const isAdmin = req.user?.role === 'admin';
     const userIp = req.ip;
 
     // 게시물 조회와 함께 작성자 정보도 가져옴
-    const post = await Post.findOne({ _id: postId, hidden: false }).populate({
+    const post = await Post.findOne({
+      _id: postId,
+      hidden: isAdmin ? { $in: [true, false] } : false,
+    }).populate({
       path: 'author',
       select: 'userId', // 필요한 작성자 정보만 선택
     });
-
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다' });
     }

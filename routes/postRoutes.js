@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
 const postController = require('../controllers/postController');
 const postMiddleware = require('../middleware/postMiddleware');
 const optionalAuthMiddleware = require('../middleware/optionalAuthMiddleware');
@@ -12,7 +12,7 @@ router.get('/search', postController.searchPosts);
 router.get('/recent-unanswered', postController.getRecentUnansweredPosts);
 router.get('/most-viewed', postController.getMostViewedPosts);
 router.get('/most-viewed-today', postController.getMostViewedPostToday);
-router.get('/hidden', postController.getHiddenPosts);
+router.get('/hidden', verifyToken, isAdmin, postController.getHiddenPosts);
 
 router.post('/', verifyToken, postController.createPost);
 

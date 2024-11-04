@@ -70,7 +70,7 @@ exports.login = async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { _id: user._id },
+      { _id: user._id, role: user.role },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: '15m' }
     );
@@ -142,11 +142,10 @@ exports.autoLogin = async (req, res) => {
 
         // 새로운 액세스 토큰 발급
         const accessToken = jwt.sign(
-          { _id: user._id },
+          { _id: user._id, role: user.role },
           process.env.ACCESS_TOKEN_SECRET,
           { expiresIn: '15m' }
         );
-
         // 소켓 ID와 유저 ID 매핑
         const socketId = req.body.socketId;
         if (userSocketMap.has(user._id.toString())) {
@@ -198,7 +197,7 @@ exports.refreshToken = async (req, res) => {
     }
 
     const newAccessToken = jwt.sign(
-      { _id: user._id },
+      { _id: user._id, role: user.role },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: '15m' }
     );
