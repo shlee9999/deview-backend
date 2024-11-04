@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema(
       get: (date) =>
         moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'moderator'],
+      default: 'user',
+    },
   },
   {
     timestamps: true,
