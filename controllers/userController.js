@@ -65,11 +65,16 @@ exports.getUserRankings = async (req, res) => {
 exports.getUserPosts = async (req, res) => {
   try {
     const query = { author: req.params.userId };
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const sort = req.query.sort || 'latest'; // 기본값은 최신순
 
-    const sortOptions = { createdAt: -1 };
+    let sortOptions;
+    if (sort === 'views') {
+      sortOptions = { viewsCount: -1, createdAt: -1 }; // 조회수 내림차순, 같은 경우 최신순
+    } else {
+      sortOptions = { createdAt: -1 }; // 최신순
+    }
 
     const result = await getPaginated(Post, query, page, limit, sortOptions);
 
@@ -80,7 +85,7 @@ exports.getUserPosts = async (req, res) => {
       totalPosts: result.totalItems,
     });
   } catch (error) {
-    console.error(error);
+    console.error('유저 게시물 조회 중 오류:', error);
     return res.status(500).json({ message: '유저 게시물 조회 실패' });
   }
 };
