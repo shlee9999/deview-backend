@@ -3,6 +3,7 @@ const postRoutes = require('./postRoutes');
 const commentRoutes = require('./commentRoutes');
 const userRoutes = require('./userRoutes');
 const notificationRoutes = require('./notificationRoutes');
+const reportRoutes = require('./reportRoutes');
 
 module.exports = (app) => {
   app.get('/', (req, res) => {
@@ -14,4 +15,5 @@ module.exports = (app) => {
   app.use('/comment', commentRoutes);
   app.use('/user', userRoutes);
   app.use('/notification', notificationRoutes);
+  app.use('/report', reportRoutes);
 };
