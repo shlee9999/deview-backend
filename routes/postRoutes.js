@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const {
+  verifyToken,
+  isAdmin,
+  optional,
+} = require('../middleware/authMiddleware');
 const postController = require('../controllers/postController');
 const postMiddleware = require('../middleware/postMiddleware');
-const optionalAuthMiddleware = require('../middleware/optionalAuthMiddleware');
 
 router.get('/', postController.getAllPosts);
 router.get('/myself', verifyToken, postController.getMyPosts);
@@ -40,5 +43,5 @@ router.get('/:postId/scrap', verifyToken, postController.getScrapStatus);
 router.get('/scraps', verifyToken, postController.getMyScraps);
 
 //게시물 상세조회
-router.get('/:postId', optionalAuthMiddleware, postController.getPostDetail);
+router.get('/:postId', optional, postController.getPostDetail);
 module.exports = router;
