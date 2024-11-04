@@ -27,6 +27,8 @@ const postSchema = new mongoose.Schema(
       get: (date) =>
         moment(date).tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
     },
+    reportCount: { type: Number, default: 0 },
+    hidden: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -45,5 +47,18 @@ postSchema.virtual('isAuthor').get(function () {
 postSchema.methods.setCurrentUser = function (userId) {
   this.currentUserId = userId;
 };
+
+postSchema.pre('find', function () {
+  this.where({ hidden: false });
+});
+
+postSchema.pre('findOne', function () {
+  this.where({ hidden: false });
+});
+
+// aggregate에도 적용하려면:
+postSchema.pre('aggregate', function () {
+  this.pipeline().unshift({ $match: { hidden: false } });
+});
 
 module.exports = mongoose.model('Post', postSchema);
