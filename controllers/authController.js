@@ -304,3 +304,29 @@ exports.updateUser = async (req, res) => {
     });
   }
 };
+
+exports.createAdminAccount = async () => {
+  try {
+    // 기존 관리자 계정 확인
+    const existingAdmin = await User.findOne({ role: 'admin' });
+
+    if (!existingAdmin) {
+      // 관리자 계정 생성
+      const newAdmin = new User({
+        username: '관리자',
+        userId: 'admin', // 고유한 userId 설정
+        password: 'admin123', // 초기 비밀번호, 나중에 변경 권장
+        group: '관리자',
+        role: 'admin',
+      });
+
+      await newAdmin.save();
+      console.log('관리자 계정이 성공적으로 생성되었습니다.');
+      console.log('보안을 위해 로그인 후 비밀번호를 변경해주세요.');
+    } else {
+      console.log('관리자 계정이 이미 존재합니다.');
+    }
+  } catch (error) {
+    console.error('관리자 계정 생성 중 오류 발생:', error);
+  }
+};
