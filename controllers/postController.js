@@ -159,63 +159,64 @@ exports.getMyPosts = async (req, res) => {
 exports.getPostDetail = async (req, res) => {
   try {
     const postId = req.params.postId;
-    const userId = req.user?._id; // 로그인하지 않은 사용자도 조회 가능하도록
+    const userId = req.user?._id;
     const isAdmin = req.user?.role === 'admin';
-    const userIp = req.ip;
 
-    // 게시물 조회와 함께 작성자 정보도 가져옴
+    // 게시물 조회
     const post = await Post.findOne({
       _id: postId,
       hidden: isAdmin ? { $in: [true, false] } : false,
     }).populate({
       path: 'author',
-      select: 'userId', // 필요한 작성자 정보만 선택
+      select: 'userId',
     });
+
     if (!post) {
       return res.status(404).json({ message: '게시물을 찾을 수 없습니다' });
     }
-    post.setCurrentUser(userId);
-    // 24시간 이내 조회 기록 확인
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const existingView = await View.findOne({
-      post: postId,
-      $or: [{ ip: userIp }, { user: userId }],
-      createdAt: { $gte: oneDayAgo },
-    });
 
-    // 24시간 이내 조회 기록이 없으면 조회수 증가
-    if (!existingView) {
-      const newView = new View({
-        user: userId,
+    post.setCurrentUser(userId);
+
+    // 24시간 이내 조회 기록 확인 (로그인한 사용자만)
+    if (userId) {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const existingView = await View.findOne({
         post: postId,
-        ip: userIp,
+        user: userId,
+        createdAt: { $gte: oneDayAgo },
       });
 
-      await Promise.all([
-        newView.save(),
-        Post.findByIdAndUpdate(postId, { $inc: { viewsCount: 1 } }),
-      ]);
+      // 24시간 이내 조회 기록이 없으면 조회수 증가
+      if (!existingView) {
+        const newView = new View({
+          user: userId,
+          post: postId,
+          createdAt: new Date(),
+        });
+
+        await Promise.all([
+          newView.save(),
+          Post.findByIdAndUpdate(postId, { $inc: { viewsCount: 1 } }),
+        ]);
+      }
     }
 
-    // 좋아요 수, 스크랩 수 조회
+    // 통계 데이터 조회
     const [likesCount, scrapsCount, viewsCount] = await Promise.all([
       Like.countDocuments({ post: postId }),
       Scrap.countDocuments({ post: postId }),
       View.countDocuments({ post: postId }),
     ]);
 
-    // 로그인한 사용자의 경우 좋아요, 스크랩 여부 확인
+    // 사용자 상호작용 확인
     let liked = false;
     let scraped = false;
 
     if (userId) {
-      const [likeStatus, scrapStatus] = await Promise.all([
-        Like.findOne({ user: userId, post: postId }),
-        Scrap.findOne({ user: userId, post: postId }),
+      [liked, scraped] = await Promise.all([
+        Like.exists({ user: userId, post: postId }).then((result) => !!result),
+        Scrap.exists({ user: userId, post: postId }).then((result) => !!result),
       ]);
-
-      liked = !!likeStatus;
-      scraped = !!scrapStatus;
     }
 
     const response = {
