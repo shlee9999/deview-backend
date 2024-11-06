@@ -17,9 +17,6 @@ exports.getUserRankings = async (req, res) => {
           totalThumbsCount: { $sum: '$thumbsCount' },
         },
       },
-      { $sort: { totalThumbsCount: -1 } },
-      { $skip: skip },
-      { $limit: limit },
       {
         $lookup: {
           from: 'users',
@@ -29,6 +26,14 @@ exports.getUserRankings = async (req, res) => {
         },
       },
       { $unwind: '$userDetails' },
+      {
+        $sort: {
+          totalThumbsCount: -1,
+          'userDetails.userId': 1,
+        },
+      },
+      { $skip: skip },
+      { $limit: limit },
       {
         $project: {
           _id: 1,
