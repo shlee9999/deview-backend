@@ -13,10 +13,6 @@ const viewSchema = new mongoose.Schema(
       ref: 'Post',
       required: true,
     },
-    ip: {
-      type: String,
-      required: true,
-    },
     createdAt: {
       type: Date,
       get: (date) =>
