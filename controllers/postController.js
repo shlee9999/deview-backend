@@ -455,7 +455,7 @@ exports.getMyScraps = async (req, res) => {
       posts,
       currentPage: result.currentPage,
       totalPages: result.totalPages,
-      totalPosts: posts.length, // 필터링된 포스트 수로 변경
+      totalPosts: result.totalItems, // 필터링된 포스트 수로 변경
     });
   } catch (error) {
     return res
