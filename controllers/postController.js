@@ -516,15 +516,11 @@ exports.getMostViewedPosts = async (req, res) => {
 
 exports.getMostViewedPostToday = async (req, res) => {
   try {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-    const KR_TIME_DIFF = 9 * 60 * 60 * 1000;
-    const today = new Date(utc + KR_TIME_DIFF);
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-
+    console.log(today, tomorrow);
     const mostViewedPost = await Post.findOne({
       createdAt: { $gte: today, $lt: tomorrow },
       hidden: false,
