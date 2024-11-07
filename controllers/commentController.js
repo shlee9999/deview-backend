@@ -208,7 +208,11 @@ exports.toggleThumb = async (req, res) => {
     if (existingThumb) {
       await Promise.all([
         Thumb.deleteOne({ _id: existingThumb._id }),
-        Comment.findByIdAndUpdate(commentId, { $inc: { thumbsCount: -1 } }),
+        Comment.findByIdAndUpdate(
+          commentId,
+          { $inc: { thumbsCount: -1 } },
+          { timestamps: false }
+        ),
       ]);
 
       return res.status(200).json({
@@ -221,7 +225,11 @@ exports.toggleThumb = async (req, res) => {
     const newThumb = new Thumb({ user: userId, comment: commentId });
     await Promise.all([
       newThumb.save(),
-      Comment.findByIdAndUpdate(commentId, { $inc: { thumbsCount: 1 } }),
+      Comment.findByIdAndUpdate(
+        commentId,
+        { $inc: { thumbsCount: 1 } },
+        { timestamps: false }
+      ),
     ]);
 
     return res.status(200).json({
