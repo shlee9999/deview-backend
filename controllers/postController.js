@@ -306,7 +306,11 @@ exports.toggleLike = async (req, res) => {
     if (existingLike) {
       await Promise.all([
         Like.deleteOne({ _id: existingLike._id }),
-        Post.findByIdAndUpdate(postId, { $inc: { likesCount: -1 } }),
+        Post.findByIdAndUpdate(
+          postId,
+          { $inc: { likesCount: -1 } },
+          { timestamps: false }
+        ),
       ]);
 
       return res.status(200).json({
@@ -375,7 +379,11 @@ exports.toggleScrap = async (req, res) => {
     if (existingScrap) {
       await Promise.all([
         Scrap.deleteOne({ _id: existingScrap._id }),
-        Post.findByIdAndUpdate(postId, { $inc: { scrapsCount: -1 } }),
+        Post.findByIdAndUpdate(
+          postId,
+          { $inc: { scrapsCount: -1 } },
+          { timestamps: false }
+        ),
       ]);
 
       return res.status(200).json({
