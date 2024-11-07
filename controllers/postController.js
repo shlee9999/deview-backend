@@ -323,7 +323,11 @@ exports.toggleLike = async (req, res) => {
     const newLike = new Like({ user: userId, post: postId });
     await Promise.all([
       newLike.save(),
-      Post.findByIdAndUpdate(postId, { $inc: { likesCount: 1 } }),
+      Post.findByIdAndUpdate(
+        postId,
+        { $inc: { likesCount: 1 } },
+        { timestamps: false }
+      ),
     ]);
 
     return res.status(200).json({
