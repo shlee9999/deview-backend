@@ -70,7 +70,7 @@ exports.getUserRankings = async (req, res) => {
 
 exports.getUserPosts = async (req, res) => {
   try {
-    const query = { author: req.params.id };
+    const query = { author: req.params.id, hidden: false };
     const user = await User.findById(req.params.id).select('userId');
     if (!user) {
       return res.status(404).json({ message: '존재하지 않는 유저입니다.' });
