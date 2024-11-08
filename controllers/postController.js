@@ -279,10 +279,15 @@ exports.deletePost = async (req, res) => {
   try {
     const postId = req.post._id;
 
-    await Comment.deleteMany({ postId }); // 게시물에 연결된 모든 댓글 삭제
-    await Post.findByIdAndDelete(postId); // 게시물 삭제
+    // Delete all associated comments, likes, and scraps
+    await Promise.all([
+      Comment.deleteMany({ postId }),
+      Like.deleteMany({ post: postId }),
+      Scrap.deleteMany({ post: postId }),
+      Post.findByIdAndDelete(postId),
+    ]);
 
-    return res.status(204).send(); // 204 No Content
+    return res.status(204).send();
   } catch (error) {
     console.error('게시물 삭제 중 오류 발생:', error);
     return res.status(500).json({ message: '게시물 삭제 실패' });
